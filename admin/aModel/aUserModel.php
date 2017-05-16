@@ -56,4 +56,8 @@ class aUserModel extends userModel {
 		parent::query("UPDATE users SET `group_id` = 1 WHERE `group_id` = ?", array($gid));
 		return parent::query("DELETE FROM `team` WHERE `group_id` = ? LIMIT 1", array($gid));
 	}
+
+	public function update_group($gid, $groupname, $pri) {
+	    return parent::query("UPDATE team SET group_name = ?, private = ? WHERE group_id = ?", array($groupname, $pri, $gid));
+    }
 }

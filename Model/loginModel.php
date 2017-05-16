@@ -56,7 +56,7 @@ class loginModel extends DB {
 		if($res[0] == 1) {
 		    return -3;  //用户名已经被使用
         }
-		$res = parent::query ( "SELECT * FROM `team` WHERE group_id = ?", array($group ));
+		$res = parent::query ( "SELECT * FROM `team` WHERE group_id = ? AND private = 0", array($group ));
 		if ($res->rowCount () == 0) {
 			return - 2; // groupID不合法
 		}

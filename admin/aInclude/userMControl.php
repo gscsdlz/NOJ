@@ -79,4 +79,17 @@ class userMControl {
 				) );
 			}
 	}
+
+	public function updateGroup() {
+        if ($_SERVER ['REQUEST_METHOD'] == 'POST' && isset ( $_SESSION ['user_id'] ) && $_SESSION ['privilege'] [0] == 1) {
+            $gid = ( int ) post ( 'gid' );
+            $groupName = post('groupName');
+            $pri = (int)post('private');
+            $status = self::$model->update_group( $gid, $groupName, $pri);
+            if ($status == 1)
+                echo json_encode ( array (
+                    'status' => true
+                ) );
+        }
+    }
 }

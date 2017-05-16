@@ -117,11 +117,12 @@
 									<select id="Group" class="form-control">
 								<?php
 			foreach ( $args [5] as $row ) {
-				if($row[1] == $group_name)
-					echo '<option selected="true" value="' . $row [0] . '">' . $row [1] . '</option>';
-				else if ($activate != 0)
-					echo '<option value="' . $row [0] . '">' . $row [1] . '</option>'; 
-					
+			    if($row[2] == 0 || $row[1] == $group_name) {
+                    if($row[1] == $group_name)
+                        echo '<option selected="true" value="' . $row [0] . '">' . $row [1] . '</option>';
+                    else if ($activate != 0)
+                        echo '<option value="' . $row [0] . '">' . $row [1] . '</option>';
+			    }
 			}
 			?>
 							</select>
