@@ -85,7 +85,7 @@
 					else
 						echo '<tr>';
 					if(isset($_SESSION['privilege']) && $_SESSION['privilege'][0] == 1)
-						echo '<td ondblclick="rejudge(parseInt(this.id))" id="'.$row[0].'rejudge">' . $row [0] . '</td>';
+						echo '<td style="cursor:pointer" onclick="rejudge(parseInt(this.id))" id="'.$row[0].'rejudge">' . $row [0] . '</td>';
 					else
 						echo '<td>' . $row [0] . '</td>';
 					echo '<td>' . date ( "Y-m-d H:i:s", $row [1] ) . '</td>';
