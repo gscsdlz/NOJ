@@ -80,8 +80,7 @@
 								<label for="Username" class="col-sm-2 control-label">用户名</label>
 								<div class="col-sm-10">
 									<input type="text" class="form-control"
-										value="<?php if(isset($username)) echo $username?>"
-										readonly="readonly">
+										value="<?php if(isset($username)) echo $username?>">
 								</div>
 							</div>
 							<div class="form-group">
@@ -125,6 +124,12 @@
 							</select>
 								</div>
 							</div>
+                            <div class="form-group">
+                                <label for="seat" class="col-sm-2 control-label">座位号</label>
+                                <div class="col-sm-10">
+                                    <input type="text" class="form-control" id="Seat" value="<?php echo htmlspecialchars($seat);?>">
+                                </div>
+                            </div>
 							<div class="form-group">
 								<label for="email" class="col-sm-2 control-label">电子邮箱</label>
 								<div class="col-sm-10">
