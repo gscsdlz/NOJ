@@ -43,7 +43,7 @@ class loginModel extends DB {
 		}
 		return 1;
 	} 
-	public function updateInfo($userid, $password, $password2, $nickname, $email, $qq, $motto, $group) {
+	public function updateInfo($userid, $password, $password2, $nickname, $email, $qq, $motto, $group, $username, $seat) {
 	    $status = 0;
 		if ($password && $password == $password2) {
 			$status = parent::query ( "UPDATE users SET password = sha1(?)	 WHERE user_id = ? LIMIT 1", array($password, $userid ));
@@ -52,11 +52,20 @@ class loginModel extends DB {
 		if ($res->rowCount () != 0) {
 			return - 1; // 邮箱已经被使用过了
 		}
+		$res = parent::query_one("SELECT COUNT(*) FROM users WHERE username = ? AND user_id != ?", array($username, $userid));
+		if($res[0] == 1) {
+		    return -3;  //用户名已经被使用
+        }
 		$res = parent::query ( "SELECT * FROM `group` WHERE group_id = ?", array($group ));
 		if ($res->rowCount () == 0) {
 			return - 2; // groupID不合法
 		}
-		$status += parent::query ( "UPDATE users SET nickname=?, email=?, qq=?, motto=?, group_id = ? WHERE user_id = ? LIMIT 1", array($nickname, $email,$qq,$motto, $group, $userid));
+		$active = parent::query_one("SELECT active FROM users WHERE user_id = ?", array($userid));
+		if($active[0] == 0) {
+            $status += parent::query("UPDATE users SET seat=? ,email=?, qq=?, motto=? WHERE user_id = ? LIMIT 1", array($seat, $email, $qq, $motto, $userid));
+        } else {
+            $status += parent::query("UPDATE users SET username=?, seat=? , nickname=?, email=?, qq=?, motto=?, group_id = ? WHERE user_id = ? LIMIT 1", array($username, $seat, $nickname, $email, $qq, $motto, $group, $userid));
+        }
 		return $status;
 	}
 

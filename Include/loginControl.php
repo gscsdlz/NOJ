@@ -118,17 +118,21 @@ class loginControl {
 			$qq = ( int ) post ( 'qq' );
 			$motto = post ( 'motto' );
 			$group = ( int ) post('group');
+			$username = post('username');
+			$seat = post('seat');
 			if (isset ( $_SESSION ['user_id'] )) {
 				$userid = $_SESSION ['user_id'];
-				$status = self::$model->updateInfo ( $userid, $password, $password2, $nickname, $email, $qq, $motto, $group );
+				$status = self::$model->updateInfo ( $userid, $password, $password2, $nickname, $email, $qq, $motto, $group, $username, $seat);
 				if($status == -1)
 					echo json_encode(array('status' => 'email error'));
 				else if($status == -2)
 					echo json_encode(array('status' => 'group error'));
+				else if($status == -3)
+					echo json_encode(array('status' => 'username error'));
 				else  if($status == 0)
 					echo json_encode(array('status' => 'update error'));
 				else
-					echo json_encode(array('status' => true));
+					echo json_encode(array('status' => true, 'username' => $username));
 			} else {
 				echo json_encode ( array (
 						'status' => false 
