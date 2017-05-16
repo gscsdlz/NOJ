@@ -122,7 +122,12 @@ class contestModel extends DB {
 			return null;
 		}
 	}
-	
+
+    /**
+     * @param $contest_id
+     * @return array
+	 * 获取比赛中内部题目编号
+     */
 	public function get_all_inner_id($contest_id) {
 		$tmp = redisDB::get('contestId:'.$contest_id);
 		if($tmp) {

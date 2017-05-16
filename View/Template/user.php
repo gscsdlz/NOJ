@@ -79,9 +79,12 @@
 							<div class="form-group">
 								<label for="Username" class="col-sm-2 control-label">用户名</label>
 								<div class="col-sm-10">
-									<input type="text" class="form-control"
+									<input type="text" class="form-control" id="Username" <?php if($activate == 0) echo 'readonly="readonly"';?>
 										value="<?php if(isset($username)) echo $username?>">
-								</div>
+                                    <label id="usernameError" class="control-label text-danger">用户名已经被使用了</label>
+                                    <label id="usernameEmptyError" class="control-label text-danger">用户名不能为空</label>
+                                    <label id="usernameRegError" class="control-label text-danger">用户名包含非法字符</label>
+                                </div>
 							</div>
 							<div class="form-group">
 								<label for="Nickname" class="col-sm-2 control-label">昵称</label>
@@ -128,6 +131,7 @@
                                 <label for="seat" class="col-sm-2 control-label">座位号</label>
                                 <div class="col-sm-10">
                                     <input type="text" class="form-control" id="Seat" value="<?php echo htmlspecialchars($seat);?>">
+                                    <label id="seatRegError" class="control-label text-danger">座位号格式应该为123_45或者为空</label>
                                 </div>
                             </div>
 							<div class="form-group">
@@ -167,6 +171,7 @@
 						<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
 						<button type="button" class="btn btn-primary" id="update">修改</button>
 					</div>
+                    <p class="text-right text-danger" id="updateError">更新失败，请重试</p>
 				</div>
 			</div>
 		</div>
@@ -301,12 +306,15 @@ if (isset ( $_SESSION ['username'] ) && $_SESSION ['username'] == $username) {
 						if (isset ( $args [1] ) && count ( $args [1] )) {
 							$i = 1;
 							foreach ( $args [1] as $row ) {
-								if ($i % 11 == 0 || $i == 1)
+								if ($i == 1)
 									echo '<tr>';
 								echo '<td><a href="/status?rid=&pid=' . $row . '&Programmer=' . $username . '&lang=0&status=4">' . $row . '</a></td>';
-								if ($i % 10 == 0)
+                                $i ++;
+								if ($i == 11) {
 									echo '</tr>';
-								$i ++;
+									$i = 1;
+								}
+
 							}
 						}
 						?>
@@ -331,19 +339,22 @@ if (isset ( $_SESSION ['username'] ) && $_SESSION ['username'] == $username) {
 			<div class="modal-body">
 				<table class="table">
 					<tr>
-<?php
-if (isset ( $args [2] ) && count ( $args [2] )) {
-	$i = 1;
-	foreach ( $args [2] as $row ) {
-		if ($i % 11 == 0 || $i == 1)
-			echo '<tr>';
-		echo '<td><a href="/status?rid=&pid=' . $row . '&Programmer=' . $username . '&lang=0&status=0">' . $row . '</a></td>';
-		if ($i % 10 == 0)
-			echo '</tr>';
-		$i ++;
-	}
-}
-?>
+                        <?php
+                        if (isset ( $args [2] ) && count ( $args [2] )) {
+                            $i = 1;
+                            foreach ( $args [2] as $row ) {
+                                if ($i == 1)
+                                    echo '<tr>';
+                                echo '<td><a href="/status?rid=&pid=' . $row . '&Programmer=' . $username . '&lang=0&status=0">' . $row . '</a></td>';
+                                $i ++;
+                                if ($i == 11) {
+                                    echo '</tr>';
+                                    $i = 1;
+                                }
+
+                            }
+                        }
+                        ?>
 					</tr>
 				</table>
 			</div>
@@ -370,13 +381,24 @@ if (isset ( $_SESSION ['username'] ) && $_SESSION ['username'] == $username) {
 		$("#emailError").hide();
 		$("#emailRegError").hide();
 		$("#passwordError").hide();
-		
+        $("#usernameError").hide();
+        $("#usernameEmptyError").hide();
+        $("#usernameRegError").hide();
+        $("#seatRegError").hide();
+        $("#updateError").hide();
+
 		$("#update").click(function(){
 			$("#mottoError").hide();
 			$("#emailError").hide();
 			$("#emailRegError").hide();
 			$("#passwordError").hide();
-			
+			$("#usernameError").hide();
+			$("#usernameEmptyError").hide();
+			$("#usernameRegError").hide();
+            $("#seatRegError").hide();
+            $("#updateError").hide();
+
+			var username = $("#Username").val();
 			var nickname = $("#Nickname").val();
 			var motto = $("#Motto").val();
 			var qq = $("#QQ").val();
@@ -384,20 +406,31 @@ if (isset ( $_SESSION ['username'] ) && $_SESSION ['username'] == $username) {
 			var group = $("#Group").val();
 			var password= $("#Password").val();
 			var password2 = $("#Password2").val();
+			var seat = $("#Seat").val();
 			if(password != password2)
 				$("#passwordError").show();
 			else if(motto.length > 30)
 				$("#mottoError").show();
+			else if(seat.length != 0 && !(/^[0-9]+_[0-9]+$/.test(seat)))
+			    $("#seatRegError").show();
+			else if(username.length == 0)
+			    $("#usernameEmptyError").show();
+			else if(!(/^[a-zA-Z0-9_-]+$/.test(username)))
+                $("#usernameRegError").show();
 			else if(!(/^[a-zA-Z0-9_-]+@[a-zA-Z0-9_-]+(\.[a-zA-Z0-9_-]+)+$/.test(email)))
 				$("#emailRegError").show();
-		    else 
-			$.post("/login/updateInfo", {nickname:nickname, motto:motto, qq:qq, email:email, group:group, password:password, password2:password2}, function(data){
+		    else
+			$.post("/login/updateInfo", {username:username, nickname:nickname, motto:motto, qq:qq, seat:seat, email:email, group:group, password:password, password2:password2}, function(data){
 				var arr = eval("(" + data + ")");
 				if (arr['status'] == true) {
 					window.location.reload();
 				} else if(arr['status'] == 'email error'){
 					$("#emailError").show();	
-				}
+				} else if(arr['status'] == 'username error') {
+				    $("#usernameError").show();
+                } else {
+				    $("#updateError").show();
+                }
 			})
 		})
 		
