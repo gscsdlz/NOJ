@@ -185,8 +185,9 @@
 	</div>
 </div>
 <script>
+    var t;
 $(document).ready(function(){
-		var t=setTimeout("location.href='/status?<?php
+		t=setTimeout("location.href='/status?<?php
 		if($contest)
 			echo '&cid='.$contest;
 		if(isset($_GET['start']))

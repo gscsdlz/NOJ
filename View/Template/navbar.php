@@ -49,8 +49,8 @@
 					$loginStatus = false;
 					?>
 				<ul class="nav navbar-nav navbar-right">
-					<li data-toggle="modal" data-target="#signModal"><a href="#">登录</a></li>
-					<li data-toggle="modal" data-target="#regModal"><a href="#">注册</a></li>
+					<li data-toggle="modal" data-target="#signModal" id="signButton"><a href="#">登录</a></li>
+					<li data-toggle="modal" data-target="#regModal" id="regButton"><a href="#">注册</a></li>
 				</ul>
 				<?php
 				} else {
@@ -287,8 +287,8 @@
 			var randId = new Date().getTime();
 			$("#regvcodeImg").attr("src", "/login/vcode/"+randId);	
 		});
-		$("#findPass").hide();
-		$("#loginError").hide();
+            $("#findPass").hide();
+		    $("#loginError").hide();
             $("#findPassEmptyError").hide();
             $("#findPassSuccess").hide();
             $("#findPassError").hide();
@@ -335,6 +335,21 @@
 			$("#sign").click(function(){
 			    login();
             });
+
+			/*
+			    订正在状态页面登录出现的刷新问题
+			 */
+			$("#signButton").click(function(){
+                if (typeof(t) != "undefined") {
+                    window.clearInterval(t);
+                }
+            })
+            $("#regButton").click(function(){
+                if (typeof(t) != "undefined") {
+                    window.clearInterval(t);
+                }
+            })
+
 			$("#reg").click(function() {
 				$("#nameRegError").hide();
 				$("#nameEmptyError").hide();
