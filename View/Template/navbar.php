@@ -233,6 +233,40 @@
 		})
 	}
 <?php }?>
+<?php if(!$loginStatus) {?>
+    function login(){
+        $("#loginError").hide();
+        $("#lvcodeEmptyError").hide();
+        $("#lvcodeError").hide();
+        var username = $("#inputUsername").val();
+        var password = $("#inputPassword").val();
+        var vcode = $("#loginvcodeText").val();
+        if(vcode.length == 0)
+            $("#lvcodeEmptyError").show();
+        else
+            $.post("/login", {
+                username : username,
+                password : password,
+                vcode : vcode
+            }, function(data) {
+                var arr = eval("(" + data + ")");
+                if (arr['status'] == 'vcode error') {
+                    $("#lvcodeError").show();
+                    var randId = new Date().getTime();
+                    $("#loginvcodeImg").attr("src", "/login/vcode/"+randId);
+                } else if(arr['status'] == true){
+                    window.location.reload();
+                } else {
+                    var randId = new Date().getTime();
+                    $("#loginvcodeImg").attr("src", "/login/vcode/"+randId);
+                    $("#inputUsername").val("");
+                    $("#inputPassword").val("");
+                    $("#loginError").show();
+                    $("#findPass").show();
+                }
+            })
+    }
+<?php }?>
 		$(document).ready(function() {
 	<?php if($contest) {?>
 		get_message();
@@ -286,39 +320,21 @@
                     })
                 }
             })
-
-			$("#sign").click(function() {
-				$("#loginError").hide();
-				$("#lvcodeEmptyError").hide();
-				$("#lvcodeError").hide();
-				var username = $("#inputUsername").val();
-				var password = $("#inputPassword").val();
-				var vcode = $("#loginvcodeText").val();
-				if(vcode.length == 0)
-					$("#lvcodeEmptyError").show();
-				else
-				$.post("/login", {
-					username : username,
-					password : password,
-					vcode : vcode
-				}, function(data) {
-					var arr = eval("(" + data + ")");
-					if (arr['status'] == 'vcode error') {
-						$("#lvcodeError").show();
-						var randId = new Date().getTime();
-						$("#loginvcodeImg").attr("src", "/login/vcode/"+randId);
-					} else if(arr['status'] == true){
-						window.location.reload();
-					} else {
-						var randId = new Date().getTime();
-						$("#loginvcodeImg").attr("src", "/login/vcode/"+randId);
-						$("#inputUsername").val("");
-						$("#inputPassword").val("");
-						$("#loginError").show();
-						$("#findPass").show();
-					}
-				})
-			})
+            $("#inputUsername").keydown(function(event){
+                if(event.which == 13)
+                    login();
+            })
+            $("#inputPassword").keydown(function(event){
+                if(event.which == 13)
+                    login();
+            })
+            $("#loginvcodeText").keydown(function (event) {
+                if(event.which == 13)
+                    login();
+            })
+			$("#sign").click(function(){
+			    login();
+            });
 			$("#reg").click(function() {
 				$("#nameRegError").hide();
 				$("#nameEmptyError").hide();
