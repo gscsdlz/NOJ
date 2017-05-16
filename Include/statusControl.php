@@ -1,0 +1,39 @@
+<?php
+if (defined ( 'APPPATH' )) {
+	require APPPATH . '/Model/statusModel.php';
+	require APPPATH . '/View/VIEW.class.php';
+} else {
+	die ();
+}
+class statusControl {
+	private static $model = null;
+	public function __construct() {
+		if (self::$model == null) {
+			self::$model = new statusModel ();
+		}
+	}
+	public function __call($method, $args) {
+		VIEW::show ( 'error', array (
+				'errorInfo' => 'Invalid action' 
+		) );
+	}
+	public function index() {
+		global $contest;
+		$cid = (int) get('cid');
+		$pro_id = ( int ) get ( 'pid' );
+		if($cid) {
+			$contest = $cid;
+			if($pro_id > 0)
+				$pro_id = self::$model->get_real_id($pro_id, $cid);
+		}
+		$submit_id = ( int ) get ( 'rid' );
+		
+		$username = get ( 'Programmer' );
+		$lang = ( int ) get ( 'lang' );
+		$status = ( int ) get ( 'status' );
+		$start = ( int ) get ( 'start' );
+		$end = ( int ) get ( 'end' );
+		$results = self::$model->getStatus ( $submit_id, $pro_id, $username, $lang, $status, $start, $end, $cid);
+		VIEW::loopshow ( 'status', $results );
+	}
+}
