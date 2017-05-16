@@ -218,6 +218,15 @@ if (isset ( $_SESSION ['username'] )) {
                 } else if(tmp.indexOf('system("pause");') != -1){
                     $("#codeCE").html("在你的代码中发现system(\"pause\")，如果是注释，请继续点击提交！");
                     $(this).attr("class", "btn btn-danger");
+                } else if(tmp.indexOf("#include") != -1 && lang == 3) {//Java can't use #include
+                    $("#codeCE").html("在你的Java代码中发现C/C++的代码，请选择正确的语言，若确定无误，请继续点击提交！");
+                    $(this).attr("class", "btn btn-danger");
+                } else if(tmp.indexOf("intmain(") == -1 && lang != 3) { //C/C++ need int main() AND return 0;
+                    $("#codeCE").html("在你的C/C++代码中未发现标准int main主函数，请检查，若确定无误，请继续点击提交！");
+                    $(this).attr("class", "btn btn-danger");
+                } else if(tmp.indexOf("return0;") == -1 && lang != 3) { //C/C++ need int main() AND return 0;
+                    $("#codeCE").html("在你的C/C++代码中未发现return 0;，请检查，若确定无误，请继续点击提交！");
+                    $(this).attr("class", "btn btn-danger");
                 }
                 else
                     submit(pid, lang, codes);
