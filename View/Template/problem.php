@@ -158,6 +158,7 @@ if (isset ( $_SESSION ['username'] )) {
 				<div class="form-group">
 					<textarea class="form-control" rows="10" id="code"></textarea>
 					<label id="emptyCodeError" class="text-danger">代码为空</label>
+                    <label id="codeCE" class="text-danger"></label>
 					<p></p>
 				</div>
 			</div>
@@ -176,36 +177,69 @@ if (isset ( $_SESSION ['username'] )) {
 		$("#emptyCodeError").hide();
 		$("#submitCodeError").hide();
 
-		
-		
+		$("#code").keypress(function(){
+		    $("#submitCode").attr("class", "btn btn-primary");
+            $("#codeCE").html("");
+        })
+
 		$("#submitCode").click(function(){
+
 			$("#missPidError").hide();
 			$("#emptyCodeError").hide();
 			$("#submitCodeError").hide();
 			var pid = $("#pid").val();
 			var lang = $("#lang").val();
 			var codes = $("#code").val();
-			
-			if(pid.length != 4)
-				$("#missPidError").show();
-			else if(codes.length == 0)
-				$("#emptyCodeError").show();
-			else 
-			$.post("/submit", {pro_id:pid, lang:lang, codes:codes<?php global $contest; if($contest) echo ',contestId:'.$contest;?>}, function(data){
-				var obj = eval("(" + data + ")");
-				if(obj['status'] == true) {
-					<?php
-						if($contest) {
-							echo 'location.href="/status?cid='.$contest.'";';
-						} else {
-							echo 'location.href="/status";';
-						}
-					?>
-				} else {
-					$("#submitCodeError").show();
-				}
-			})
+            if($(this).attr("class") == 'btn btn-danger')
+                submit(pid, lang, codes);
+            else {
+                var tmp = codes;
+                tmp = ClearBr(tmp);
+                tmp = trim(tmp);
+                tmp = CTim(tmp);
+
+
+                if (pid.length != 4)
+                    $("#missPidError").show();
+                else if (codes.length == 0)
+                    $("#emptyCodeError").show();
+                else if ( tmp.indexOf("publicclassMain") == -1 && lang == 3) {//Java need public class Main
+                    $("#codeCE").html("在你的Java代码中未发现public class Main，请检查，若确定无误，请继续点击提交！");
+                    $(this).attr("class", "btn btn-danger");
+                } else if ( tmp.indexOf("package") != -1 && lang == 3) {//Java can't use package
+                    $("#codeCE").html("在你的Java代码中发现package关键字，请检查，若确定无误，请继续点击提交！");
+                    $(this).attr("class", "btn btn-danger");
+                } else if(tmp.indexOf("publicclass") != -1 && lang != 3) {  //C/C++ do not include public class
+                    $("#codeCE").html("在你的C/C++代码中发现Java的代码，请选择正确的语言，若确定无误，请继续点击提交！");
+                    $(this).attr("class", "btn btn-danger");
+                } else if((tmp.indexOf("iostream") || tmp.indexOf("usingnamespacestd;")) && lang == 1){ //C can't use C++ header file
+                    $("#codeCE").html("在你的C代码中发现C++的代码，请选择正确的语言，若确定无误，请继续点击提交！");
+                    $(this).attr("class", "btn btn-danger");
+                } else if(tmp.indexOf('system("pause");') != -1){
+                    $("#codeCE").html("在你的代码中发现system(\"pause\")，如果是注释，请继续点击提交！");
+                    $(this).attr("class", "btn btn-danger");
+                }
+                else
+                    submit(pid, lang, codes);
+            }
 		})
+
+        function submit(pid, lang, codes) {
+            $.post("/submit", {pro_id:pid, lang:lang, codes:codes<?php global $contest; if($contest) echo ',contestId:'.$contest;?>}, function(data){
+                var obj = eval("(" + data + ")");
+                if(obj['status'] == true) {
+                    <?php
+                    if($contest) {
+                        echo 'location.href="/status?cid='.$contest.'";';
+                    } else {
+                        echo 'location.href="/status";';
+                    }
+                    ?>
+                } else {
+                    $("#submitCodeError").show();
+                }
+            })
+        }
 		 $("textarea").on('keydown', function(e) {
                 if (e.keyCode == 9) {
                     e.preventDefault();
@@ -221,5 +255,21 @@ if (isset ( $_SESSION ['username'] )) {
                 }
             })
 	})
+    //去除换行
+    function ClearBr(key) {
+        key = key.replace(/<\/?.+?>/g,"");
+        key = key.replace(/[\r\n]/g, "");
+        return key;
+    }
+
+    //去掉字符串两端的空格
+    function trim(str) {
+        return str.replace(/(^\s*)|(\s*$)/g, "");
+    }
+
+    //去除字符串中间空格
+    function CTim(str) {
+        return str.replace(/\s/g,'');
+    }
 </script>
 ﻿<?php }?>
