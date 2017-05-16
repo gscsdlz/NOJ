@@ -63,58 +63,22 @@
 							data-target="#<?php if(isset($_SESSION['username'])) echo 'codeModal'; else echo 'signModal';?>">提交</button>
 						<button data-toggle="modal" id="getStatistics" data-target="#statisticsModal" type="button" class="btn btn-success btn-lg">统计</button>
 						<button type="button" class="btn btn-info btn-lg">讨论</button>
+                        <div class="well" id="AllStatus"
+                             style="height: 400px; margin-top: 50px;">
+
+                        </div>
 					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
-<div class="modal fade" id="statisticsModal" tabindex="-1" role="dialog"
-	aria-labelledby="statisticsModalLabel" aria-hidden="true">
-	<div class="modal-dialog">
-		<div class="modal-content">
-			<div class="modal-header">
-				<button type="button" class="close" data-dismiss="modal">
-					<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
-				</button>
-				<h4 class="modal-title" id="codeModalLabel">该题提交记录统计</h4>
-			</div>
-			<div class="modal-body">
-			<table class="table table-hover text-center" id="statisticsInfo">
-				<tr>
-					<th>AC</th>
-					<th>PE</th>
-					<th>WA</th>
-					<th>RE</th>
-					<th>TLE</th>
-					<th>MLE</th>
-					<th>OLE</th>
-					<th>CE</th>
-				</tr>
-			</table>
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
-			</div>
-		</div>
-	</div>
-</div>
-<script>
-	$(document).ready(function(){
-		$("#getStatistics").click(function(){
-			$.post("/problem/get_statistics", {pro_id:<?php echo $pro_id;?><?php if($contest) echo ',cid:'.$contest?>}, function(data){
-				var arr = eval("(" + data + ")");
-				if(arr['status']) {
-					$("#statisticsInfo").html("<tr><th>AC</th><th>PE</th><th>WA</th><th>RE</th><th>TLE</th><th>MLE</th><th>OLE</th><th>CE</th></tr>");
-					$("#statisticsInfo").append('<tr>');
-					for(var i = 0; i < arr['info'][0].length; ++i)
-						$("#statisticsInfo").append('<td>'+ arr['info'][0][i]+'</td>');
-					$("#statisticsInfo").append("</tr>");
-				}
-			})
-		})
-	})
-</script>
+
+
+
+
+
+
 <?php
 if (isset ( $_SESSION ['username'] )) {
 	?>
@@ -227,6 +191,9 @@ if (isset ( $_SESSION ['username'] )) {
                 } else if(tmp.indexOf("return0;") == -1 && lang != 3) { //C/C++ need int main() AND return 0;
                     $("#codeCE").html("在你的C/C++代码中未发现return 0;，请检查，若确定无误，请继续点击提交！");
                     $(this).attr("class", "btn btn-danger");
+                } else if(tmp.indexOf("#include<bits/stdc++.h>") != -1 && lang != 3) { //Can not use super header file
+                    $("#codeCE").html("本OJ暂时不支持bits/stdc++.h，请删除，若确定无误，请继续点击提交！");
+                    $(this).attr("class", "btn btn-danger");
                 }
                 else
                     submit(pid, lang, codes);
@@ -282,3 +249,61 @@ if (isset ( $_SESSION ['username'] )) {
     }
 </script>
 ﻿<?php }?>
+<script>
+    var  myChartAllStatus = echarts.init(document.getElementById('AllStatus'));
+    $(document).ready(function(){
+        $("#AllStatus").hide();
+       $("#getStatistics").click(function(){
+           $("#AllStatus").show();
+            var arr = new Array();
+            $.post("/problem/get_statistics", {pro_id:<?php echo $pro_id;?><?php if($contest) echo ',cid:'.$contest?>}, function(data){
+                var arrs = eval("(" + data + ")");
+                if(arrs['status']) {
+                    for(var i = 0; i < arrs['info'][0].length; ++i) {
+                        arr.push(parseInt(arrs['info'][0][i]));
+                    }
+                }
+                myChartAllStatus.setOption({
+                    title: {
+                        text:'提交统计信息'
+                    },
+                    color: ['#2F4554'],
+                    tooltip : {
+                        trigger: 'axis',
+                        axisPointer : {            // 坐标轴指示器，坐标轴触发有效
+                            type : 'shadow'        // 默认为直线，可选为：'line' | 'shadow'
+                        }
+                    },
+                    grid: {
+                        left: 'center',
+                        top: 'middle',
+                        height: '300',
+                        containLabel: true
+                    },
+                    xAxis : [
+                        {
+                            type : 'category',
+                            data : ['AC', 'PE', 'WA', 'RE', 'TLE', 'MLE', 'OLE', 'CE'],
+                            axisTick: {
+                                alignWithLabel: true
+                            }
+                        }
+                    ],
+                    yAxis : [
+                        {
+                            type : 'value'
+                        }
+                    ],
+                    series : [
+                        {
+                            name:'详细数据',
+                            type:'bar',
+                            barWidth: '60%',
+                            data:[arr[0], arr[1], arr[2], arr[3], arr[4], arr[5], arr[6], arr[7]]
+                        }
+                    ]
+                });
+            })
+       })
+    })
+</script>
