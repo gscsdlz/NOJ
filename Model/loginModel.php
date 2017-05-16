@@ -56,11 +56,12 @@ class loginModel extends DB {
 		if($res[0] == 1) {
 		    return -3;  //用户名已经被使用
         }
-		$res = parent::query ( "SELECT * FROM `group` WHERE group_id = ?", array($group ));
+		$res = parent::query ( "SELECT * FROM `team` WHERE group_id = ?", array($group ));
 		if ($res->rowCount () == 0) {
 			return - 2; // groupID不合法
 		}
-		$active = parent::query_one("SELECT active FROM users WHERE user_id = ?", array($userid));
+		$active = parent::query_one("SELECT activate FROM users WHERE user_id = ?", array($userid));
+
 		if($active[0] == 0) {
             $status += parent::query("UPDATE users SET seat=? ,email=?, qq=?, motto=? WHERE user_id = ? LIMIT 1", array($seat, $email, $qq, $motto, $userid));
         } else {

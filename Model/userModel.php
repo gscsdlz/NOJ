@@ -13,7 +13,7 @@ class userModel extends DB {
 	}
 	
 	public function getStatus($user_id) {
-		$result = parent::query ( "SELECT status, count(*) FROM `status` where user_id = ? AND contest_id = 0 group BY (status)", array($user_id ));
+		$result = parent::query ( "SELECT status, count(*) FROM `status` where user_id = ? AND contest_id = 0 GROUP BY (status)", array($user_id ));
 		$arr = array (
 				0,
 				0,
@@ -55,7 +55,7 @@ class userModel extends DB {
 	}
 	
 	public function get_user_info($user_id) {
-		$result = parent::query("SELECT * FROM `users` lEFT JOIN `group` ON `group`.group_id = `users`.group_id WHERE user_id = ?", array($user_id));
+		$result = parent::query("SELECT * FROM `users` lEFT JOIN `team` ON `team`.group_id = `users`.group_id WHERE user_id = ?", array($user_id));
 		
 		return $result->fetch(PDO::FETCH_NAMED);
 	}
@@ -84,7 +84,7 @@ class userModel extends DB {
 	 * @return mixed
 	 */
 	public function get_group_info() {
-		$result = parent::query("SELECT * FROM `group`");
+		$result = parent::query("SELECT * FROM `team`");
 		while($row = $result->fetch(PDO::FETCH_NUM)){
 			$arg[] = $row;
 		}
