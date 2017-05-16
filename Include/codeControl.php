@@ -16,7 +16,7 @@ class codeControl{
 	public function show() {
 		$submit_id = (int)get("id");
 		$res = self::$model->getCode($submit_id);
-		$options = 0;
+		$res['options'] = 0;
 		if($res) {
 			VIEW::show('code', $res);
 		} else {
@@ -28,7 +28,7 @@ class codeControl{
 	public function ce() {
 		$submit_id = (int)get("id");
 		$res = self::$model->getCEInfo($submit_id);
-        $options = 0;
+        $res['options'] = 0;
 		if($res) {
 			VIEW::show('code', $res);
 		} else {
