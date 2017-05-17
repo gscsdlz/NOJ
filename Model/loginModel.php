@@ -56,14 +56,17 @@ class loginModel extends DB {
 		if($res[0] == 1) {
 		    return -3;  //用户名已经被使用
         }
-		$res = parent::query ( "SELECT * FROM `team` WHERE group_id = ? AND private = 0", array($group ));
-		if ($res->rowCount () == 0) {
-			return - 2; // groupID不合法
-		}
+        $res = parent::query_one("SELECT group_id FROM users WHERE user_id = ?", array($userid));
+		if($res[0] != $group) {
+            $res = parent::query("SELECT * FROM `team` WHERE group_id = ? AND private = 0", array($group));
+            if ($res->rowCount() == 0) {
+                return -2; // groupID不合法
+            }
+        }
 		$active = parent::query_one("SELECT activate FROM users WHERE user_id = ?", array($userid));
 
 		if($active[0] == 0) {
-            $status += parent::query("UPDATE users SET seat=? ,email=?, qq=?, motto=? WHERE user_id = ? LIMIT 1", array($seat, $email, $qq, $motto, $userid));
+            $status += parent::query("UPDATE users SET email=?, qq=?, motto=? WHERE user_id = ? LIMIT 1", array($email, $qq, $motto, $userid));
         } else {
             $status += parent::query("UPDATE users SET username=?, seat=? , nickname=?, email=?, qq=?, motto=?, group_id = ? WHERE user_id = ? LIMIT 1", array($username, $seat, $nickname, $email, $qq, $motto, $group, $userid));
         }

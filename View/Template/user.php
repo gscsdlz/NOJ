@@ -131,7 +131,7 @@
                             <div class="form-group">
                                 <label for="seat" class="col-sm-2 control-label">座位号</label>
                                 <div class="col-sm-10">
-                                    <input type="text" class="form-control" id="Seat" value="<?php echo htmlspecialchars($seat);?>">
+                                    <input type="text" class="form-control" id="Seat" <?php if($activate == 0) echo 'readonly="readonly"';?> value="<?php echo htmlspecialchars($seat);?>">
                                     <label id="seatRegError" class="control-label text-danger">座位号格式应该为123_45或者为空</label>
                                 </div>
                             </div>
