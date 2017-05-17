@@ -176,7 +176,7 @@ if (isset ( $_SESSION ['username'] )) {
                 } else if(tmp.indexOf("publicclass") != -1 && lang != 3) {  //C/C++ do not include public class
                     $("#codeCE").html("在你的C/C++代码中发现Java的代码，请选择正确的语言，若确定无误，请继续点击提交！");
                     $(this).attr("class", "btn btn-danger");
-                } else if((tmp.indexOf("iostream") || tmp.indexOf("usingnamespacestd;")) && lang == 1){ //C can't use C++ header file
+                } else if((tmp.indexOf("iostream") != -1 || tmp.indexOf("usingnamespacestd;") != -1) && lang == 1){ //C can't use C++ header file
                     $("#codeCE").html("在你的C代码中发现C++的代码，请选择正确的语言，若确定无误，请继续点击提交！");
                     $(this).attr("class", "btn btn-danger");
                 } else if(tmp.indexOf('system("pause");') != -1){
