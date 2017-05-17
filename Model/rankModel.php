@@ -6,7 +6,7 @@ class rankModel extends DB {
         parent::__construct ();
     }
     private function get_users() {
-        $res = parent::query ( "SELECT user_id, username, motto FROM users WHERE activate = 1" );
+        $res = parent::query ( "SELECT user_id, username, motto, nickname FROM users WHERE activate = 1" );
         while ( $row = $res->fetch ( PDO::FETCH_NUM ) ) {
 
             $this->users [$row [0]] = array (
@@ -14,12 +14,13 @@ class rankModel extends DB {
                 $row [2],
                 0,
                 0,
-                0
+                0,
+                $row[3]
             );
         }
     }
     public function getRank($page = 0, $user_id = 0) {
-        $status = redisDB::get ( 'rank' );
+        $status = redisDB::get ( 'ranks' );
 
         if ($status) {
             $this->users = json_decode ( $status, true );
@@ -287,7 +288,7 @@ class rankModel extends DB {
         }
     }
     private function get_userinfo($user_id) {
-        $res = parent::query_one ( "SELECT users.username, users.nickname, group_name FROM users LEFT JOIN `team` ON (group.group_id = users.group_id) WHERE users.user_id = ?", array (
+        $res = parent::query_one ( "SELECT users.username, users.nickname, group_name FROM users LEFT JOIN `team` ON (team.group_id = users.group_id) WHERE users.user_id = ?", array (
             $user_id
         ) );
         return $res;
