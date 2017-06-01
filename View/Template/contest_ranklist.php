@@ -20,7 +20,14 @@ global $contest;
 			<label>显示小组排名</label>
 			<select class="form-control" id="groupfilter">
 			<option value="">ALL</option>
-
+<?php
+    if(isset($args[1]['teams']) && count($args[1]['teams']) != 0) {
+        foreach($args[1]['teams'] as $value) {
+            echo '<option value="'.$value.'">'.$value.'</option>';
+        }
+        unset ($args[1]['teams']);
+    }
+?>
 			</select>
 		</div>
 		<div class="form-group">
@@ -41,12 +48,14 @@ global $contest;
     $cuNum = (int)$args[1]['medal'][2];
     $feNum = (int)$args[1]['medal'][3];
 	$pageP = RANKPAGEMAXSIZE;
+	$team = $args[1]['team'];
 /**
  * 必须释放，保证下面对于args[1]的操作的正确性
  */
 	unset($args[1]['pageN']);
 	unset($args[1]['pageT']);
 	unset($args[1]['medal']);
+    unset($args[1]['team']);
 ?>
 	
 	</form>
@@ -54,24 +63,25 @@ global $contest;
   <ul class="pagination pagination-lg">
     <li>
 <?php 
-	echo '<a href="/contest/ranklist/'.$contest.'/0" aria-label="Previous">';
+	echo '<a href="/contest/ranklist/'.$contest.'/0/'.$team.'" aria-label="Previous">';
 ?>
         <span aria-hidden="true">&laquo;</span>
       </a>
     </li>
 <?php
 	for($i = 0; $i < $pageT; ++$i)
-		echo '<li><a href="/contest/ranklist/'.$contest.'/'.$i.'">'.$i.'</a></li>';
+		echo '<li><a href="/contest/ranklist/'.$contest.'/'.$i.'/'.$team.'">'.$i.'</a></li>';
 ?>
 	
     <li>
 <?php 
-	echo '<a href="/contest/ranklist/'.$contest.'/'.($pageT - 1).'" aria-label="Next">';
+	echo '<a href="/contest/ranklist/'.$contest.'/'.($pageT - 1).'/'.$team.'" aria-label="Next">';
 ?>
         <span aria-hidden="true">&raquo;</span>
       </a>
     </li>
   </ul>
+</nav>
 
 		<table class="table table-hover table-bordered"
 			style="vertical-align: middle; margin-top:20px;">
@@ -96,8 +106,8 @@ global $contest;
 
 
 		if (isset ( $args [1] ) && count ( $args [1] )) {
-			$k = $pageN * $pageP + 1;
 			foreach ( $args [1] as $row ) {
+			    $k = $row[5];
 			    echo '<tr><td>' . $k;
 			    if($row[1] > 0 && $k <= $feNum + $cuNum + $agNum + $auNum) {
 			        echo '<img width="30px" height="30px" src="/Src/Image/';
@@ -112,7 +122,6 @@ global $contest;
                     echo '" />';
                 }
                 echo '</td>';
-				$k++;
 				echo '<td><a href="/user/show/' . $row [2] . '">' . $row [2] . '('.$row[4].')</a></td>';
 				echo '<td>'.$row[3].'</td>';
 				echo '<td>' . $row [1] . '</td>';
@@ -141,50 +150,50 @@ global $contest;
 		}
 		?>
 	</table>
-<nav aria-label="Page navigation">
-  <ul class="pagination pagination-lg">
-    <li>
-<?php 
-	echo '<a href="/contest/ranklist/'.$contest.'/0" aria-label="Previous">';
-?>
-        <span aria-hidden="true">&laquo;</span>
-      </a>
-    </li>
-<?php
-	for($i = 0; $i < $pageT; ++$i)
-		echo '<li><a href="/contest/ranklist/'.$contest.'/'.$i.'">'.$i.'</a></li>';
-?>
-	
-    <li>
-<?php 
-	echo '<a href="/contest/ranklist/'.$contest.'/'.($pageT - 1).'" aria-label="Next">';
-?>
-        <span aria-hidden="true">&raquo;</span>
-      </a>
-    </li>
-  </ul>
-</nav>
+    <nav aria-label="Page navigation">
+        <ul class="pagination pagination-lg">
+            <li>
+                <?php
+                echo '<a href="/contest/ranklist/'.$contest.'/0/'.$team.'" aria-label="Previous">';
+                ?>
+                <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            <?php
+            for($i = 0; $i < $pageT; ++$i)
+                echo '<li><a href="/contest/ranklist/'.$contest.'/'.$i.'/'.$team.'">'.$i.'</a></li>';
+            ?>
+
+            <li>
+                <?php
+                echo '<a href="/contest/ranklist/'.$contest.'/'.($pageT - 1).'/'.$team.'" aria-label="Next">';
+                ?>
+                <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
 	</div>
 </div>
 <script>
-	var groupSet = new Set();
 	$(document).ready(function(){
 		
-		$(".table-bordered tr").each(function(index, item){
-			if(index != 0)
-			groupSet.add($(this).children().eq(2).html());
-		})
-		groupSet.forEach(function(item){
-			$("#groupfilter").append('<option value='+ item.toString() +'>'+item.toString()+'</option>');
-		})
+//		$(".table-bordered tr").each(function(index, item){
+//			if(index != 0)
+//			groupSet.add($(this).children().eq(2).html());
+//		})
+//		groupSet.forEach(function(item){
+//			$("#groupfilter").append('<option value='+ item.toString() +'>'+item.toString()+'</option>');
+//		})
 		$("#filter").click(function(){
 			var group = $("#groupfilter").val();
-			$(".table-bordered tr").each(function(index, item){
-				if(index != 0 && $(this).children().eq(2).html() != group && group != "")
-					$(this).hide();
-				else
-					$(this).show();
-			})
+//			$(".table-bordered tr").each(function(index, item){
+//				if(index != 0 && $(this).children().eq(2).html() != group && group != "")
+//					$(this).hide();
+//				else
+//					$(this).show();
+//			})
+            window.location.href = "/contest/ranklist/<?php echo $contest;?>/<?php echo $pageN;?>/"+ group;
 		})
 	})
 </script>

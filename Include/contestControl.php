@@ -154,7 +154,7 @@ class contestControl {
 		$contest = $contestId;
 		$res = self::$codeModel->getCEInfo ( $submit_id, $contest );
 		if ($res) {
-			$res['ctime'] = -1;
+			$res['options'] = -1;
 			VIEW::show ( 'code', $res );
 		} else {
 			VIEW::show ( 'error', array (
@@ -166,12 +166,15 @@ class contestControl {
 		global $contest;
 		$page = ( int ) get('pid');
 		$cid = ( int ) get ( 'id' );
+		$team = urldecode(get('string'));
+		if($team == 'ALL' || $team == "")
+		    $team = -1;
 		$contest = $cid;
 
 		$args [0] = self::$model->get_all_inner_id ( $cid );
 		$args [0][] = self::$model->get_lists($cid);
 		if ($args) {
-			$args [1] = self::$rankModel->contest_rank ( $cid , $page);
+			$args [1] = self::$rankModel->contest_rank ( $cid , $page, $team);
 			VIEW::loopshow ( 'contest_ranklist', $args );
 		} else {
 			VIEW::show ( 'error', array (

@@ -102,130 +102,158 @@ class rankModel extends DB {
      *
      * @param int $cid
      */
-    public function contest_rank($cid, $page) {
-        $pagesize = redisDB::get ( 'contest_rank_len:' . $cid );
-        if ($pagesize != false) {
-            $page = min ( $pagesize - 1, $page );
-            $page = max ( 0, $page );
-            $status = redisDB::get ( 'contest_rank:' . $cid . ':' . $page );
-            if ($status) {
+    public function contest_rank($cid, $page, $group=-1) {
+        $tmp = array();
+        $cache = false;
+        $options = redisDB::get('contest_options:'.$cid);
+        if ($options != false) {
+            $status = redisDB::get ( 'contest_rank:' . $cid );
+            if ($status != false) {
                 $tmp = json_decode ( $status, true );
-                $tmp['pageN'] = $page;
-                $tmp['pageT'] = $pagesize;
-                $tmp['ttl'] = redisDB::ttl('contest_rank:' . $cid . ':' . $page);
-                $tmp['medal'] = json_decode(redisDB::get('contest_medal_num:'.$cid), true );
-                $tmp['options'] = redisDB::get('contest_options:'.$cid);
-                return $tmp;
+                $cache = true;
+                $medalNum = json_decode(redisDB::get('contest_medal_num:'.$cid), true );
             }
         }
-        $medalNum = $this->get_medal_num($cid);
-        $this->get_all_status ( $cid );
-        $c_stime = $this->get_contest_stime ( $cid );
-        $options = $this->get_contest_option($cid);
-        /**
-         * $contestrank 层次说明
-         * 第一层 用户ID
-         * 第二层 当前用于所有题目
-         * 第三层 改用户当前题目的提交情况 按时间排序
-         * 第四层 该题目状态。该题目提交时间
-         * 过程描述。遍历第三层 确定第一次正确提交前有多少次错误
-         */
-        $tmp = array ();
-        $res = parent::query ( "SELECT inner_id FROM contest_pro WHERE contest_id = ?", array (
-            $cid
-        ) );
-        $fb = array ();
-        while ( $row = $res->fetch ( PDO::FETCH_NUM ) ) {
-            $fb [$row [0]] = array (
-                0,
-                0
-            );
-        }
-        if ($c_stime && count ( $this->contestrank ) != 0) {
-            foreach ( $this->contestrank as $key => $users ) {
-                $tmp [$key] = array ();
-                $total_time = 0; // 总秒数
-                $total_ac = 0; // 总正确次数
-                foreach ( $users as $key2 => $pro ) { // 需要修改
-                    $tmp [$key] [$key2] = array ();
-                    $len = count ( $pro );
-                    $pro_time = 0; // 单个题目总秒数
-                    $pro_wa = 0; // 单个题目总错误次数
-                    $pro_ac = false;
-                    foreach ( $pro as $status ) {
-                        if ($status [0] != 4) {
-                            $pro_wa ++;
-                        } else { // 一旦通过 之后的提交都不在计算
-                            if ($fb [$key2] [0] == 0 || $fb [$key2] [0] > ( int ) $status [1]) {
-                                $fb [$key2] [0] = ( int ) $status [1];
-                                $fb [$key2] [1] = $key;
+        if($cache == false) {
+            $medalNum = $this->get_medal_num($cid);
+            $this->get_all_status($cid);
+            $c_stime = $this->get_contest_stime($cid);
+            $options = $this->get_contest_option($cid);
+            /**
+             * $contestrank 层次说明
+             * 第一层 用户ID
+             * 第二层 当前用户所有题目
+             * 第三层 该用户当前题目的提交情况 按时间排序
+             * 第四层 该题目状态。该题目提交时间
+             * 过程描述。遍历第三层 确定第一次正确提交前有多少次错误
+             */
+
+            $res = parent::query("SELECT inner_id FROM contest_pro WHERE contest_id = ? ORDER BY inner_id ASC", array(
+                $cid
+            ));
+            $fb = array();
+            while ($row = $res->fetch(PDO::FETCH_NUM)) {
+                $fb [$row [0]] = array(
+                    0,
+                    0
+                );
+            }
+            if ($c_stime && count($this->contestrank) != 0) {
+                foreach ($this->contestrank as $key => $users) {
+                    $tmp [$key] = array();
+                    $total_time = 0; // 总秒数
+                    $total_ac = 0; // 总正确次数
+                    foreach ($users as $key2 => $pro) { // 需要修改
+                        $tmp [$key] [$key2] = array();
+                        $len = count($pro);
+                        $pro_time = 0; // 单个题目总秒数
+                        $pro_wa = 0; // 单个题目总错误次数
+                        $pro_ac = false;
+                        foreach ($pro as $status) {
+                            if ($status [0] != 4) {
+                                $pro_wa++;
+                            } else { // 一旦通过 之后的提交都不在计算
+                                if ($fb [$key2] [0] == 0 || $fb [$key2] [0] > ( int )$status [1]) {
+                                    $fb [$key2] [0] = ( int )$status [1];
+                                    $fb [$key2] [1] = $key;
+                                }
+                                $pro_ac = true;
+                                $pro_time += ( int )$status [1] - $c_stime;
+                                break;
                             }
-                            $pro_ac = true;
-                            $pro_time += ( int ) $status [1] - $c_stime;
-                            break;
                         }
-                    }
-                    /**
-                     * 说明
-                     * time = 0， wa = n 错误了n次 仍然为通过
-                     * time = n，wa = m 再经过m次错误以后，通过题目 m可以为0
-                     */
-                    if (! $pro_ac)
-                        $tmp [$key] [$key2] = array (
-                            0,
-                            $pro_wa
-                        );
-                    else {
-                        $total_ac ++;
-                        $tmp [$key] [$key2] = array (
-                            $pro_time,
-                            $pro_wa
-                        );
-                        $total_time += $pro_time + $pro_wa * 20 * 60; // 加上罚时
-                    }
-                } // $pro
-                $tmp [$key] [0] = $total_time;
-                $tmp [$key] [1] = $total_ac;
-                $userinfo = $this->get_userinfo ( $key );
-                $tmp [$key] [2] = $userinfo [0];
-                $tmp [$key] [3] = $userinfo [2];
-                $tmp [$key] [4] = $userinfo [1];
-            } // users
-        }
-        unset ( $this->contestrank );
-        function cmp($a, $b) {
-            if ($a [1] == $b [1]) {
-                if ($a [1] == 0)
-                    return $a [0] > $b [0] ? - 1 : 1;
-                else
-                    return $a [0] > $b [0] ? 1 : - 1;
-            } else {
-                return $a [1] < $b [1] ? 1 : - 1;
+                        /**
+                         * 说明
+                         * time = 0， wa = n 错误了n次 仍然为通过
+                         * time = n，wa = m 再经过m次错误以后，通过题目 m可以为0
+                         */
+                        if (!$pro_ac)
+                            $tmp [$key] [$key2] = array(
+                                0,
+                                $pro_wa
+                            );
+                        else {
+                            $total_ac++;
+                            $tmp [$key] [$key2] = array(
+                                $pro_time,
+                                $pro_wa
+                            );
+                            $total_time += $pro_time + $pro_wa * 20 * 60; // 加上罚时
+                        }
+                    } // $pro
+                    $tmp [$key] [0] = $total_time;
+                    $tmp [$key] [1] = $total_ac;
+                    $userinfo = $this->get_userinfo($key);
+                    $tmp [$key] [2] = $userinfo [0];
+                    $tmp [$key] [3] = $userinfo [2];
+                    $tmp [$key] [4] = $userinfo [1];
+                } // users
             }
+
+            unset ($this->contestrank);
+            function cmp($a, $b)
+            {
+                if ($a [1] == $b [1]) {
+                    if ($a [1] == 0)
+                        return $a [0] > $b [0] ? -1 : 1;
+                    else
+                        return $a [0] > $b [0] ? 1 : -1;
+                } else {
+                    return $a [1] < $b [1] ? 1 : -1;
+                }
+            }
+
+            uasort($tmp, "cmp");
+            foreach ($fb as $key => $value) {
+                if ($value [0] > 0)
+                    $tmp [$value [1]] [$key] [] = 1;
+            }
+            output_csv($cid, $tmp, $fb);
         }
-        uasort ( $tmp, "cmp" );
-        foreach ( $fb as $key => $value ) {
-            if ($value [0] > 0)
-                $tmp [$value [1]] [$key] [] = 1;
-        }
-        output_csv($cid, $tmp, $fb);
-        $lists = array_chunk ( $tmp, RANKPAGEMAXSIZE, false );
-        unset ( $tmp );
-        $p = 0;
-        redisDB::setWithTimeOut('contest_rank_len:' . $cid, count ( $lists ), REDISCACHETIME);
-        redisDB::setWithTimeOut('contest_medal_num:'.$cid, json_encode($medalNum), REDISCACHETIME);
-        redisDB::setWithTimeOut('contest_options:'.$cid, $options, REDISCACHETIME);
-        foreach ( $lists as $row ) {
-            redisDB::setWithTimeOut( 'contest_rank:' . $cid . ":" . $p++, json_encode ( $row ), REDISCACHETIME);
-        }
-        if($p == 0)
+        if(count($tmp) == 0) {
             return null;
-        else {
-            $lists[$page]['pageN'] = $page;
-            $lists[$page]['pageT'] = $p;
-            $lists[$page]['medal'] = $medalNum;
-            $lists[$page]['options'] = $options;
-            return $lists [$page];
+        } else {
+            if($cache == false) {
+                redisDB::setWithTimeOut('contest_medal_num:' . $cid, json_encode($medalNum), REDISCACHETIME);
+                redisDB::setWithTimeOut('contest_options:' . $cid, $options, REDISCACHETIME);
+                redisDB::setWithTimeOut('contest_rank:' . $cid, json_encode($tmp), REDISCACHETIME);
+            }
+            $args = array();
+            $pstart = $page * RANKPAGEMAXSIZE + 1;
+            $pend = ($page + 1) * RANKPAGEMAXSIZE;
+            $p = 1;
+            $rank = 1;
+            $t = 0;
+            $groups = array();
+            foreach ($tmp as $key) {
+                $groups[] = $key[3];
+                if ($group == -1) {
+                    if ($p >= $pstart && $p <= $pend) {
+                        $args[$t] = $key;
+                        $args[$t++][5] = $rank;
+                    }
+                    $p++;
+                } else if ($group == $key[3]) {
+                    if ($p >= $pstart && $p <= $pend) {
+                        $args[$t] = $key;
+                        $args[$t++][5] = $rank;
+                    }
+                    $p++;
+                }
+                $rank++;
+            }
+            $args['pageN'] = $page;
+            $args['pageT'] = (int)(($p + 1) / RANKPAGEMAXSIZE) + 1;
+            $args['teams'] = array_unique($groups);
+            if($group == -1)
+                $group = "";
+            $args['team'] = $group;
+            $args['medal'] = $medalNum;
+            $args['options'] = $options;
+            if($cache == true) {
+                $args['ttl'] = redisDB::ttl('contest_rank:' . $cid);
+            }
+            return $args;
         }
     }
 
@@ -268,7 +296,7 @@ class rankModel extends DB {
      * @param unknown $cid
      */
     private function get_all_status($cid) {
-        $res = parent::query ( "SELECT user_id, inner_id, status, submit_time FROM status LEFT JOIN contest_pro ON(status.contest_id = contest_pro.contest_id AND status.pro_id = contest_pro.pro_id) WHERE status.contest_id = ? ORDER BY submit_time", array (
+        $res = parent::query ( "SELECT user_id, inner_id, status, submit_time, score FROM status LEFT JOIN contest_pro ON(status.contest_id = contest_pro.contest_id AND status.pro_id = contest_pro.pro_id) WHERE status.contest_id = ? ORDER BY submit_time", array (
             $cid
         ) );
         if ($res->rowCount () != 0) {
