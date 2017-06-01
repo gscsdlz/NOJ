@@ -172,10 +172,8 @@ class contestModel extends DB {
 	}
 	
 	public function get_options($contestId) {
-		var_dump($contestId);
 		$res = parent::query_one ( "SELECT options FROM contest WHERE contest_id = ? ", array($contestId ));
 		if ($res) {
-			echo $res[0];
 			return $res[0];
 		}
 		return 0;
