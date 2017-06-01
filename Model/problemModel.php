@@ -189,7 +189,8 @@ class problemModel extends DB {
 		);
 		if ($result->rowCount () != 0) {
 			while ( $row = $result->fetch ( PDO::FETCH_NUM ) ) {
-				$arr [$row [0] - 4] = $row [1];
+				if($row[0] != 13) //排除作弊状态
+					$arr [$row [0] - 4] = $row [1];
 			}
 		}
 		return $arr;
