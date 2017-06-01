@@ -67,6 +67,7 @@
 				<th>代码长度</th>
 				<th>语言</th>
 				<th>状态</th>
+<?php if(isset($args) && count($args[0]) == 10) echo '<th>分数</th>';?>
 				<th>用户名</th>
 			</tr>
 			<?php
@@ -125,6 +126,8 @@
 					}
 					else
 						echo '">' . $statusArr [$row [7]] . '</td>';
+					if(isset($row[9]))
+					    echo '<td>'.$row[9].'</td>';
 					echo '<td><a href="/user/show/' . $row [8] . '">' . $row [8] . '</a></td>';
 					echo "</tr>\n";
 				}
