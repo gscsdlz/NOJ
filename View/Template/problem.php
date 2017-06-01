@@ -191,8 +191,8 @@ if (isset ( $_SESSION ['username'] )) {
                 } else if(tmp.indexOf("return0;") == -1 && lang != 3) { //C/C++ need int main() AND return 0;
                     $("#codeCE").html("在你的C/C++代码中未发现return 0;，请检查，若确定无误，请继续点击提交！");
                     $(this).attr("class", "btn btn-danger");
-                } else if(tmp.indexOf("#include<bits/stdc++.h>") != -1 && lang != 3) { //Can not use super header file
-                    $("#codeCE").html("本OJ暂时不支持bits/stdc++.h，请删除，若确定无误，请继续点击提交！");
+                } else if((tmp.indexOf("%I64d") != -1 || tmp.indexOf("__int64") != -1) && lang != 3) {
+                    $("#codeCE").html("64位整数请使用long long 和 %lld;，请检查，若确定无误，请继续点击提交！");
                     $(this).attr("class", "btn btn-danger");
                 }
                 else
