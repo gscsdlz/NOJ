@@ -35,6 +35,8 @@ class router {
 					$_GET['id'] = $paths[2];
 				if($count >= 4)
 					$_GET['pid'] = $paths[3];
+                if($count >= 5)
+                    $_GET['string'] = $paths[4];
 			}
 		}
 	}
