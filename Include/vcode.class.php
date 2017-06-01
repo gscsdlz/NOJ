@@ -46,7 +46,7 @@ class vcode {
 	}
 	
 	private function createCheckCode(){
-		$code = "3456789abcdefghijklmnpqrstuvwxyABCDEFGHIJKLMNPQRSTUVWXYZ";
+		$code = "3456789abcdefghjkmnpqrstuvwxyABCDEFGHKLMNPQRSTUVWXYZ";
 		for($i = 0; $i < $this->codeNum; $i++) {
 			$char = $code{rand(0, strlen($code) - 1)};
 			$ascii .= $char;
