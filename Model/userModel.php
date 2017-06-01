@@ -84,7 +84,7 @@ class userModel extends DB {
 	 * @return mixed
 	 */
 	public function get_group_info() {
-		$result = parent::query("SELECT * FROM `team`");
+		$result = parent::query("SELECT `group_id`, `group_name` FROM `team`");
 		while($row = $result->fetch(PDO::FETCH_NUM)){
 			$arg[] = $row;
 		}
