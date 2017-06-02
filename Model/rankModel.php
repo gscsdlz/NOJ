@@ -106,11 +106,11 @@ class rankModel extends DB {
         $tmp = array();
         $cache = false;
         $options = redisDB::get('contest_options:'.$cid);
-        if ($options != false) {
+        if ($options !== false) {
             $status = redisDB::get ( 'contest_rank:' . $cid );
-            if ($status != false) {
+            if ($status !== false) {
                 $tmp = json_decode ( $status, true );
-                $cache = true;
+               // $cache = true;
                 $medalNum = json_decode(redisDB::get('contest_medal_num:'.$cid), true );
             }
         }
@@ -119,96 +119,12 @@ class rankModel extends DB {
             $this->get_all_status($cid);
             $c_stime = $this->get_contest_stime($cid);
             $options = $this->get_contest_option($cid);
-            /**
-             * $contestrank 层次说明
-             * 第一层 用户ID
-             * 第二层 当前用户所有题目
-             * 第三层 该用户当前题目的提交情况 按时间排序
-             * 第四层 该题目状态。该题目提交时间
-             * 过程描述。遍历第三层 确定第一次正确提交前有多少次错误
-             */
+            $oi_mode = $this->get_oi_mode($cid);
+            if($oi_mode == 1)
+                $tmp = $this->sort_with_oi($c_stime);
+            else
+                $tmp = $this->sort_without_oi($cid, $c_stime);
 
-            $res = parent::query("SELECT inner_id FROM contest_pro WHERE contest_id = ? ORDER BY inner_id ASC", array(
-                $cid
-            ));
-            $fb = array();
-            while ($row = $res->fetch(PDO::FETCH_NUM)) {
-                $fb [$row [0]] = array(
-                    0,
-                    0
-                );
-            }
-            if ($c_stime && count($this->contestrank) != 0) {
-                foreach ($this->contestrank as $key => $users) {
-                    $tmp [$key] = array();
-                    $total_time = 0; // 总秒数
-                    $total_ac = 0; // 总正确次数
-                    foreach ($users as $key2 => $pro) { // 需要修改
-                        $tmp [$key] [$key2] = array();
-                        $len = count($pro);
-                        $pro_time = 0; // 单个题目总秒数
-                        $pro_wa = 0; // 单个题目总错误次数
-                        $pro_ac = false;
-                        foreach ($pro as $status) {
-                            if ($status [0] != 4) {
-                                $pro_wa++;
-                            } else { // 一旦通过 之后的提交都不在计算
-                                if ($fb [$key2] [0] == 0 || $fb [$key2] [0] > ( int )$status [1]) {
-                                    $fb [$key2] [0] = ( int )$status [1];
-                                    $fb [$key2] [1] = $key;
-                                }
-                                $pro_ac = true;
-                                $pro_time += ( int )$status [1] - $c_stime;
-                                break;
-                            }
-                        }
-                        /**
-                         * 说明
-                         * time = 0， wa = n 错误了n次 仍然为通过
-                         * time = n，wa = m 再经过m次错误以后，通过题目 m可以为0
-                         */
-                        if (!$pro_ac)
-                            $tmp [$key] [$key2] = array(
-                                0,
-                                $pro_wa
-                            );
-                        else {
-                            $total_ac++;
-                            $tmp [$key] [$key2] = array(
-                                $pro_time,
-                                $pro_wa
-                            );
-                            $total_time += $pro_time + $pro_wa * 20 * 60; // 加上罚时
-                        }
-                    } // $pro
-                    $tmp [$key] [0] = $total_time;
-                    $tmp [$key] [1] = $total_ac;
-                    $userinfo = $this->get_userinfo($key);
-                    $tmp [$key] [2] = $userinfo [0];
-                    $tmp [$key] [3] = $userinfo [2];
-                    $tmp [$key] [4] = $userinfo [1];
-                } // users
-            }
-
-            unset ($this->contestrank);
-            function cmp($a, $b)
-            {
-                if ($a [1] == $b [1]) {
-                    if ($a [1] == 0)
-                        return $a [0] > $b [0] ? -1 : 1;
-                    else
-                        return $a [0] > $b [0] ? 1 : -1;
-                } else {
-                    return $a [1] < $b [1] ? 1 : -1;
-                }
-            }
-
-            uasort($tmp, "cmp");
-            foreach ($fb as $key => $value) {
-                if ($value [0] > 0)
-                    $tmp [$value [1]] [$key] [] = 1;
-            }
-            output_csv($cid, $tmp, $fb);
         }
         if(count($tmp) == 0) {
             return null;
@@ -217,6 +133,7 @@ class rankModel extends DB {
                 redisDB::setWithTimeOut('contest_medal_num:' . $cid, json_encode($medalNum), REDISCACHETIME);
                 redisDB::setWithTimeOut('contest_options:' . $cid, $options, REDISCACHETIME);
                 redisDB::setWithTimeOut('contest_rank:' . $cid, json_encode($tmp), REDISCACHETIME);
+                redisDB::setWithTimeOut('contest_oi:'.$cid, json_encode($oi_mode), REDISCACHETIME);
             }
             $args = array();
             $pstart = $page * RANKPAGEMAXSIZE + 1;
@@ -245,6 +162,7 @@ class rankModel extends DB {
             $args['pageN'] = $page;
             $args['pageT'] = (int)(($p + 1) / RANKPAGEMAXSIZE) + 1;
             $args['teams'] = array_unique($groups);
+            $args['oi_mode'] = $oi_mode;
             if($group == -1)
                 $group = "";
             $args['team'] = $group;
@@ -290,6 +208,13 @@ class rankModel extends DB {
         return null;
     }
 
+    private function get_oi_mode($cid){
+        $res = parent::query_one("SELECT oi FROM contest WHERE contest_id = ?", [$cid]);
+        if($res)
+            return $res[0];
+        return null;
+    }
+
     /**
      * 可能是严重性能问题
      *
@@ -310,7 +235,8 @@ class rankModel extends DB {
                 $count = count ( $this->contestrank [$row [0]] [$row [1]] );
                 $this->contestrank [$row [0]] [$row [1]] [$count] = array (
                     $row [2],
-                    $row [3]
+                    $row [3],
+                    $row[4]
                 );
             }
         }
@@ -320,6 +246,158 @@ class rankModel extends DB {
             $user_id
         ) );
         return $res;
+    }
+
+    /**
+     * 标准ACM比赛下，排名排序函数
+     */
+    private function sort_without_oi($cid, $c_stime){
+        /**
+         * $contestrank 层次说明
+         * 第一层 用户ID
+         * 第二层 当前用户所有题目
+         * 第三层 该用户当前题目的提交情况 按时间排序
+         * 第四层 该题目状态。该题目提交时间
+         * 过程描述。遍历第三层 确定第一次正确提交前有多少次错误
+         */
+        $tmp = array();
+        $res = parent::query("SELECT inner_id FROM contest_pro WHERE contest_id = ? ORDER BY inner_id ASC", array(
+            $cid
+        ));
+        $fb = array();
+        while ($row = $res->fetch(PDO::FETCH_NUM)) {
+            $fb [$row [0]] = array(
+                0,
+                0
+            );
+        }
+        if ($c_stime && count($this->contestrank) != 0) {
+            foreach ($this->contestrank as $key => $users) {
+                $tmp [$key] = array();
+                $total_time = 0; // 总秒数
+                $total_ac = 0; // 总正确次数
+                foreach ($users as $key2 => $pro) { // 需要修改
+                    $tmp [$key] [$key2] = array();
+                    $len = count($pro);
+                    $pro_time = 0; // 单个题目总秒数
+                    $pro_wa = 0; // 单个题目总错误次数
+                    $pro_ac = false;
+                    foreach ($pro as $status) {
+                        if ($status [0] != 4) {
+                            $pro_wa++;
+                        } else { // 一旦通过 之后的提交都不在计算
+                            if ($fb [$key2] [0] == 0 || $fb [$key2] [0] > ( int )$status [1]) {
+                                $fb [$key2] [0] = ( int )$status [1];
+                                $fb [$key2] [1] = $key;
+                            }
+                            $pro_ac = true;
+                            $pro_time += ( int )$status [1] - $c_stime;
+                            break;
+                        }
+                    }
+                    /**
+                     * 说明
+                     * time = 0， wa = n 错误了n次 仍然为通过
+                     * time = n，wa = m 再经过m次错误以后，通过题目 m可以为0
+                     */
+                    if (!$pro_ac)
+                        $tmp [$key] [$key2] = array(
+                            0,
+                            $pro_wa
+                        );
+                    else {
+                        $total_ac++;
+                        $tmp [$key] [$key2] = array(
+                            $pro_time,
+                            $pro_wa
+                        );
+                        $total_time += $pro_time + $pro_wa * 20 * 60; // 加上罚时
+                    }
+                } // $pro
+                $tmp [$key] [0] = $total_time;
+                $tmp [$key] [1] = $total_ac;
+                $userinfo = $this->get_userinfo($key);
+                $tmp [$key] [2] = $userinfo [0];
+                $tmp [$key] [3] = $userinfo [2];
+                $tmp [$key] [4] = $userinfo [1];
+            } // users
+        }
+
+        unset ($this->contestrank);
+        function cmp($a, $b)
+        {
+            if ($a [1] == $b [1]) {
+                if ($a [1] == 0)
+                    return $a [0] > $b [0] ? -1 : 1;
+                else
+                    return $a [0] > $b [0] ? 1 : -1;
+            } else {
+                return $a [1] < $b [1] ? 1 : -1;
+            }
+        }
+
+        uasort($tmp, "cmp");
+        foreach ($fb as $key => $value) {
+            if ($value [0] > 0)
+                $tmp [$value [1]] [$key] [] = 1;//根据fb数组设置tmp数组中的状态值
+        }
+        output_csv($cid, $tmp, $fb);
+        return $tmp;
+    }
+
+    /**
+     * OI模式下，排名排序函数
+     */
+    private function sort_with_oi($c_stime){
+        $tmp = array();
+        /*
+         * 没有罚时 按照分数排序
+         */
+        if ($c_stime && count($this->contestrank) != 0) {
+            foreach ($this->contestrank as $key => $users) {
+                $tmp [$key] = array();
+                $total_score = 0; //总分数
+                $total_submit = 0; // 总提交次数
+                foreach ($users as $key2 => $pro) {
+                    $tmp [$key] [$key2] = array();
+                    $pro_score = 0; // 单个题目分数
+                    $pro_submit = count($pro); // 单个题目总提交次数
+                    $pro_ac = false;
+                    foreach ($pro as $status) {
+                        $pro_score = max($pro_score, $status[2]);
+                        if($status[0] == 4)
+                            $pro_ac = true;
+                    }
+                    $tmp[$key][$key2] = array(
+                         $pro_score,
+                         $pro_submit,
+                         $pro_ac
+                    );
+                    $total_score += $pro_score;
+                    $total_submit += $pro_submit;
+                } // $pro
+                $tmp [$key] [0] = $total_score;
+                $tmp [$key] [1] = $total_submit;
+                $userinfo = $this->get_userinfo($key);
+                $tmp [$key] [2] = $userinfo [0];
+                $tmp [$key] [3] = $userinfo [2];
+                $tmp [$key] [4] = $userinfo [1];
+            } // users
+        }
+
+        unset ($this->contestrank);
+        function cmp($a, $b)
+        {
+            if ($a [0] == $b [0]) {
+                    return $a [1] > $b [1] ? 1 : -1;
+            } else {
+                return $a [0] < $b [0] ? 1 : -1;
+            }
+        }
+
+        uasort($tmp, "cmp");
+        //output_csv($cid, $tmp, $fb);
+        return $tmp;
     }
 }
 ?>
