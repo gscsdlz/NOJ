@@ -70,7 +70,7 @@
 
 	<div class="row" style="margin-top:60px">
 {#if $contest neq 0#}
-		<marquee id="message" class="text-danger" onclick="window.location.href='/contest/asklist/{$contest}'"><h4>有关比赛的新通知，会在这里显示，点击即可查看！</h4></marquee>
+		<marquee id="message" class="text-danger" onclick="window.location.href='/contest/asklist/{#$contest#}'"><h4>有关比赛的新通知，会在这里显示，点击即可查看！</h4></marquee>
 {#/if#}
 	</div>
 	{#if !isset($smarty.session.username)#}
