@@ -10,7 +10,7 @@ if (isset ( $args [3] ))
 unset($args);
 ?>
 <div class="row">
-	<div class="col-md-8 col-md-offset-2">
+	<div class="col-md-10 col-md-offset-1">
 		<div>
 			<ul class="nav nav-tabs" role="tablist">
 				<li role="presentation" class="active"><a href="#base"
@@ -115,15 +115,24 @@ unset($args);
 									</div>
 								</div>
 								<div class="form-group">
-									<label for="c_etime" class="col-sm-4">比赛结束时间<br />格式：1970-01-30
-										00:00:00
-									</label>
-									<div class="col-sm-8">
-										<input type="text" class="form-control" id="c_etime"
-											placeholder="请输入结束时间"
-											value="<?php if(isset($base['c_etime']))echo date('Y-m-d H:i:s', $base['c_etime'])?>">
-									</div>
-								</div>
+                                    <label for="c_etime" class="col-sm-4">比赛结束时间<br />格式：1970-01-30
+                                        00:00:00
+                                    </label>
+                                    <div class="col-sm-8">
+                                        <input type="text" class="form-control" id="c_etime"
+                                               placeholder="请输入结束时间"
+                                               value="<?php if(isset($base['c_etime']))echo date('Y-m-d H:i:s', $base['c_etime'])?>">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-8 col-sm-offset-4">
+                                        <div class="checkbox">
+                                            <label>
+                                                <input type="checkbox"  id="oi_mdoe" <?php if(isset($base['oi']) && $base['oi'] == 1 )echo 'checked="true"';?>> 启用OI模式
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
 								<label for="contest_title">比赛题目列表 <span class="text-danger">双击题目实际ID
 										即可删除当前题目 已经在比赛中的题目，如果删除会一并删除相关的提交数据，请注意！</span></label>
 								<div id="prolist">
@@ -131,9 +140,9 @@ unset($args);
 						if (isset ( $prolist ))
 							for($i = 1; $i < count ( $prolist ); $i ++) {
 								echo '<div class="form-group">';
-								echo '<div class="col-sm-4"><input value="' . $prolist [$i] [0] . '" type="text" class="form-control"/></div>';
-								echo '<div class="col-sm-4"><input readonly="true" ondblclick="delete_pro($(this).parent().parent())" value="' . $prolist [$i] [4] . '" type="text" class="form-control" /></div>';
-								echo '<div class="col-sm-4"><label><a href="/problem/show/' . $prolist [$i] [4] . '" target="_blank">' . $prolist [$i] [1] . '</a></label></div>';
+								echo '<div class="col-sm-3"><input value="' . $prolist [$i] [0] . '" type="text" class="form-control"/></div>';
+								echo '<div class="col-sm-3"><input readonly="true" ondblclick="delete_pro($(this).parent().parent())" value="' . $prolist [$i] [4] . '" type="text" class="form-control" /></div>';
+								echo '<div class="col-sm-3"><label><a href="/problem/show/' . $prolist [$i] [4] . '" target="_blank">' . $prolist [$i] [1] . '</a></label></div>';
 								echo '</div>';
 							}
 						?>
@@ -363,7 +372,7 @@ unset($args);
 					lastId = 1000;
 				else
 					lastId += 1;
-				$("#prolist").append('<div class="form-group">'+'<div class="col-sm-4"><input placeholder="请输入题目的比赛编号" value="'+lastId+'" type="text" class="form-control"/></div>'+'<div class="col-sm-4"><input readonly="true" ondblclick="delete_pro($(this).parent().parent())" value="' + pro_id + '" type="text" class="form-control" /></div>' + '<div class="col-sm-4"><label><a href="/problem/show/' + pro_id + '" target="_blank">' + pro_title+ '</a></label></div>' + '</div>');
+				$("#prolist").append('<div class="form-group">'+'<div class="col-sm-3"><input placeholder="请输入题目的比赛编号" value="'+lastId+'" type="text" class="form-control"/></div>'+'<div class="col-sm-3"><input readonly="true" ondblclick="delete_pro($(this).parent().parent())" value="' + pro_id + '" type="text" class="form-control" /></div>' + '<div class="col-sm-3"><label><a href="/problem/show/' + pro_id + '" target="_blank">' + pro_title+ '</a></label></div>' + '</div>');
 				$("#pro_id").val("");
 				$("#pro_title").html("请填写题目实际编号");
 				$("#pro_title").attr("href", "javascript:void(0)");
