@@ -1,13 +1,14 @@
 <?php
 if(defined('APPPATH')) {
 	require_once APPPATH.'/Model/codeModel.php';
-	require_once APPPATH.'/View/VIEW.class.php';
+	require_once APPPATH.'/Include/smarty/core/Smarty.class.php';
 } else {
 	die ();
 }
-class codeControl{
+class codeControl extends Smarty {
 	private static $model = null;
 	public function __construct() {
+	    parent::__construct();
 		if(self::$model == null) {
 			self::$model = new codeModel();
 		}
@@ -16,11 +17,17 @@ class codeControl{
 	public function show() {
 		$submit_id = (int)get("id");
 		$res = self::$model->getCode($submit_id);
-		$res['options'] = 0;
+		parent::assign($res);
+		parent::assign('options', 0);
+		global $langArr;
+		global $statusArr;
+		parent::assign('langArr', $langArr);
+		parent::assign('statusArr', $statusArr);
 		if($res) {
-			VIEW::show('code', $res);
+			parent::display('code.html');
 		} else {
-			VIEW::show('error', array('errorInfo' => 'Invalid Id'));
+            parent::assign('errorInfo', 'Invalid Id');
+            parent::display('error.html');
 		}
 		
 	}
@@ -28,11 +35,17 @@ class codeControl{
 	public function ce() {
 		$submit_id = (int)get("id");
 		$res = self::$model->getCEInfo($submit_id);
-        $res['options'] = 0;
+        parent::assign($res);
+        parent::assign('options', 0);
+        global $langArr;
+        global $statusArr;
+        parent::assign('langArr', $langArr);
+        parent::assign('statusArr', $statusArr);
 		if($res) {
-			VIEW::show('code', $res);
+            parent::display('code.html');
 		} else {
-			VIEW::show('error', array('errorInfo' => 'Invalid Id'));
+            parent::assign('errorInfo', 'Invalid Id');
+            parent::display('error.html');
 		}
 	}
 }

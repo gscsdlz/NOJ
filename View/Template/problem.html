@@ -1,66 +1,60 @@
+{#include file='header.html'#}
+{#include file='navbar.html'#}
 <div class="row">
 	<div class="col-md-8 col-md-offset-2">
-		<h1 class="text-center text-primary"><?php echo $pro_title;?></h1>
-		<h4 class="text-center text-danger">时间限制: <?php echo $time_limit;?>ms 内存限制: <?php echo $memory_limit;?>KB</h4>
-		<h4 class="text-center text-danger">通过次数: <span class="badge"><?php echo $aSubmit;?></span>
-			总提交次数: <span class="badge"><?php echo $tSubmit;?></span></h4>
+		<h1 class="text-center text-primary">{#$pro_title#}</h1>
+		<h4 class="text-center text-danger">时间限制: {#$time_limit#}ms 内存限制: {#$memory_limit#}KB</h4>
+		<h4 class="text-center text-danger">通过次数: <span class="badge">{#$aSubmit#}</span>
+			总提交次数: <span class="badge">{#$tSubmit#}</span></h4>
 		<div class="panel panel-default">
 			<div class="panel-body">
-<?php
-	if($pro_descrip){
-?>
+				{#if $pro_descrip neq ""#}
 				<div class="panel panel-default">
 					<div class="panel-heading">问题描述</div>
-					<div class="panel-body"><?php echo $pro_descrip;?></div>
+					<div class="panel-body">{#$pro_descrip#}</div>
 				</div>
-<?php } 
-	if($pro_in){
-?>
+				{#/if#}
+				{#if $pro_in neq ""#}
 				<div class="panel panel-default">
 					<div class="panel-heading">输入描述</div>
-					<div class="panel-body"><?php echo $pro_in;?></div>
+					<div class="panel-body">{#$pro_in#}</div>
 				</div>
-<?php } 
-	if($pro_out){
-?>
+				{#/if#}
+				{#if $pro_out neq ""#}
 				<div class="panel panel-default">
 					<div class="panel-heading">输出描述</div>
-					<div class="panel-body"><?php echo $pro_out;?></div>
+					<div class="panel-body">{#$pro_out#}</div>
 				</div>
-<?php } 
-	if($pro_dataIn){
-?>
+				{#/if#}
+				{#if $pro_dataIn neq ""#}
 				<div class="panel panel-default panel-danger">
 					<div class="panel-heading">样例输入</div>
-					<div class="panel-body"><pre><?php echo $pro_dataIn;?></pre></div>
+					<div class="panel-body"><pre>{#$pro_dataIn#}</pre></div>
 				</div>
-<?php } 
-	if($pro_dataOut){
-?>
+				{#/if#}
+				{#if $pro_dataOut neq ""#}
 				<div class="panel panel-default  panel-danger">
 					<div class="panel-heading">样例输出</div>
-					<div class="panel-body"><pre><?php echo $pro_dataOut;?></pre></div>
+					<div class="panel-body"><pre>{#$pro_dataOut#}</pre></div>
 				</div>
-<?php } 
-	if($author){
-?>
+				{#/if#}
+				{#if $author neq ""#}
 				<div class="panel panel-default">
 					<div class="panel-heading">来源</div>
-					<div class="panel-body"><?php echo $author;?></div>
+					<div class="panel-body">{#$author#}</div>
 				</div>
-<?php } 
-	if($hint){
-?>
+				{#/if#}
+				{#if $hint neq ""#}
 				<div class="panel panel-default">
 					<div class="panel-heading">提示</div>
-					<div class="panel-body"><?php echo $hint?></div>
+					<div class="panel-body">{#$hint#}</div>
 				</div>
-<?php } ?>
+				{#/if#}
 				<div class="panel panel-default">
 					<div class="panel-body text-center">
 						<button type="button" class="btn btn-danger btn-lg"
 							data-toggle="modal"
-							data-target="#<?php if(isset($_SESSION['username'])) echo 'codeModal'; else echo 'signModal';?>">提交</button>
+							data-target="#{#if isset($smarty.session.username)#}codeModal{#else#}signModal{#/if#}">提交</button>
 						<button data-toggle="modal" id="getStatistics" data-target="#statisticsModal" type="button" class="btn btn-success btn-lg">统计</button>
 						<button type="button" class="btn btn-info btn-lg">讨论</button>
                         <div class="well" id="AllStatus"
@@ -79,9 +73,7 @@
 
 
 
-<?php
-if (isset ( $_SESSION ['username'] )) {
-	?>
+{#if isset($smarty.session.username)#}
 <div class="modal fade" id="codeModal" tabindex="-1" role="dialog"
 	aria-labelledby="codeModalLabel" aria-hidden="true">
 	<div class="modal-dialog">
@@ -97,22 +89,20 @@ if (isset ( $_SESSION ['username'] )) {
 					<div class="form-group">
 						<h4 id="submitCodeError" class="text-danger">提交错误，请重试</h4>
 						<input type="text" readonly="readonly" class="form-control" id="pid"
-							value="<?php echo $pro_id;?>"> <select class="form-control"
+							value="{#$pro_id#}"> <select class="form-control"
 							id="lang">
-							<?php
-	global $langArr;
-	$i = 0;
-	foreach ( $langArr as $row ) {
-		if ($i == 0) {
-			$i ++;
-			continue;
-		}
-		if(isset($_SESSION['lang']) && $_SESSION['lang'] == $i)
-			echo '<option selected="true" value="' . $i ++ . '">' . $row . '</option>';
-		else
-			echo '<option value="' . $i ++ . '">' . $row . '</option>';
-	}
-	?>
+	{#$i=0#}
+	{#foreach $langArr as $row#}
+		{#if $i eq 0#}
+			{#$i++#}
+			{#continue#}
+		{#/if#}
+		{#if isset($smarty.session.lang) && $smarty.session.lang == $i #}
+			<option selected="true" value="{#$i++#}">{#$row#}</option>
+		{#else#}
+			<option value="{#$i++#}">{#$row#}</option>
+		{#/if#}
+	{#/foreach#}
 						</select>
 
 					</div>
@@ -133,7 +123,6 @@ if (isset ( $_SESSION ['username'] )) {
 		</div>
 	</div>
 </div>
-
 <script>
 	$(document).ready(function(){
 
@@ -196,21 +185,23 @@ if (isset ( $_SESSION ['username'] )) {
                     $(this).attr("class", "btn btn-danger");
                 }
                 else
-                    submit(pid, lang, codes);
+                    submit(pid, lang, codes)
             }
 		})
 
         function submit(pid, lang, codes) {
-            $.post("/submit", {pro_id:pid, lang:lang, codes:codes<?php global $contest; if($contest) echo ',contestId:'.$contest;?>}, function(data){
+            $.post("/submit", {pro_id:pid, lang:lang, codes:codes
+				{#if $contest neq 0#}
+					,contestId:{#$contest#}
+				{#/if#}
+				}, function(data){
                 var obj = eval("(" + data + ")");
                 if(obj['status'] == true) {
-                    <?php
-                    if($contest) {
-                        echo 'location.href="/status?cid='.$contest.'";';
-                    } else {
-                        echo 'location.href="/status";';
-                    }
-                    ?>
+					{#if $contest neq 0#}
+                        location.href="/status?cid={#$contest#}";
+					{#else#}
+                        location.href="/status"
+					{#/if#}
                 } else {
                     $("#submitCodeError").show();
                 }
@@ -248,7 +239,7 @@ if (isset ( $_SESSION ['username'] )) {
         return str.replace(/\s/g,'');
     }
 </script>
-﻿<?php }?>
+{#/if#}
 <script>
     var  myChartAllStatus = echarts.init(document.getElementById('AllStatus'));
     $(document).ready(function(){
@@ -256,7 +247,7 @@ if (isset ( $_SESSION ['username'] )) {
        $("#getStatistics").click(function(){
            $("#AllStatus").show();
             var arr = new Array();
-            $.post("/problem/get_statistics", {pro_id:<?php echo $pro_id;?><?php if($contest) echo ',cid:'.$contest?>}, function(data){
+            $.post("/problem/get_statistics", {pro_id:{#$pro_id#}{#if $contest neq 0#},cid:{#$contest#}{#/if#}}, function(data){
                 var arrs = eval("(" + data + ")");
                 if(arrs['status']) {
                     for(var i = 0; i < arrs['info'][0].length; ++i) {
@@ -307,3 +298,4 @@ if (isset ( $_SESSION ['username'] )) {
        })
     })
 </script>
+{#include file='footer.html'#}

@@ -1,0 +1,161 @@
+{#include file='header.html'#}
+{#include file='navbar.html'#}
+<div class="row">
+	<div class="col-md-8 col-md-offset-2  text-center">
+		<form class="form-inline" role="form" action="" method="get">
+			<div class="form-group">
+				<input type="hidden" placeholder="提交号" class="form-control"
+					name="rid"
+					value="{#if isset($smarty.get.rid)#}{#(int)$smarty.get.rid#}{#/if#}" />
+			</div>
+			<div class="form-group">
+				 <input type="text" placeholder="题目编号" class="form-control"
+					name="pid"
+					value="{#if isset($smarty.get.pid) && $smarty.get.pid != 0#}{#(int)$smarty.get.pid#}{#/if#}" />
+			</div>
+			<div class="form-group">
+				 <input type="text" placeholder="用户名" class="form-control"
+					name="Programmer"
+					value="{#if isset($smarty.get.Programmer)#}{#htmlspecialchars($smarty.get.Programmer)#}{#/if#}" />
+			</div>
+			<div class="form-group">
+				<label>语言</label> <select class="form-control" name="lang">
+				{#if isset($smarty.get.lang)#}
+					{#$id=$smarty.get.lang#}
+				{#else#}
+					{#$id=-1#}
+				{#/if#}
+				{#$i=0#}
+				{#foreach $langArr as $row#}
+					{#if $i == $id#}
+						<option selected="selected" value="{#$i++#}">{#$row#}</option>
+					{#else#}
+						<option value="{#$i++#}">{#$row#}</option>
+					{#/if#}
+				{#/foreach#}
+				</select>
+			</div>
+			<div class="form-group">
+				<label>状态</label> <select class="form-control" name="status">
+				{#if isset($smarty.get.lang)#}
+					{#$id=$smarty.get.status#}
+				{#else#}
+					{#$id=-1#}
+				{#/if#}
+				{#$i=0#}
+					{#foreach $statusArr as $row#}
+					{#if $i == $id#}
+						<option selected="selected" value="{#$i++#}">{#$row#}</option>
+					{#else#}
+						<option value="{#$i++#}">{#$row#}</option>
+					{#/if#}
+				{#/foreach#}
+				</select>
+			</div>
+			<input type="hidden" value="{#if $contest != 0#}{#$contest#}{#/if#}" name="cid">
+			<button type="submit" class="btn btn-default btn-primary">筛选</button>
+		</form>
+		<hr />
+		<table class="table table-hover">
+			<tr>
+				<th>提交号</th>
+				<th>提交时间</th>
+				<th>题目编号</th>
+				<th>运行时间</th>
+				<th>运行内存</th>
+				<th>代码长度</th>
+				<th>语言</th>
+				<th>状态</th>
+{#if isset($lists) && count($lists[0]) == 10#}
+				<th>分数</th>
+{#/if#}
+				<th>用户名</th>
+			</tr>
+			{#if count($lists) neq 0#}
+			{#if isset($smarty.session.username)#}
+				{#$loginStatus=true#}
+			{#else#}
+				{#$loginStatus=false#}
+			{#/if#}
+				{#foreach $lists as $row#}
+						{#if !isset ( $sid ) #}
+							{#$sid = $row[0]#}
+						{#/if#}
+						{#$eid = $row[0]#}
+						{#if $row[7] == 13 #}<tr class="bg-danger">{#else#}<tr>{#/if#}
+
+						{#if isset($smarty.session.privilege) && $smarty.session.privilege.0 == 1#}
+							<td style="cursor:pointer" onclick="rejudge(parseInt(this.id))" id="{#$row[0]#}rejudge">{#$row[0]#}</td>
+						{#else#}
+							<td>{#$row[0]#}</td>
+						{#/if#}
+
+						<td>{#date("Y-m-d H:i:s", $row[1])#}</td>
+
+						{#if $contest != 0#}
+							<td><a href="/contest/problem/{#$contest#}/{#$row[2]#}">{#$row[2]#}</a></td>
+						{#else#}
+							<td><a href="/problem/show/{#$row[2]#}">{#$row[2]#}</a></td>
+						{#/if#}
+
+						<td>{#$row[3]#}MS</td>
+						<td>{#$row[4]#}KB</td>
+
+						{#if $loginStatus == true && ($row[8] == $smarty.session.username || $smarty.session.privilege.0 == 1 || isset($smarty.session.privilege.1.$contest))#}
+							{#if $contest != 0#}
+								<td><a href="/contest/code/{#$contest#}/{#$row[0]#}">{#$row[5]#}B</a></td>
+							{#else#}
+								<td><a href="/code/show/{#$row[0]#}">{#$row[5]#}B</a></td>
+							{#/if#}
+						{#else#}
+							<td>{#$row[5]#}B</td>
+						{#/if#}
+						<td>{#$langArr[$row[6]]#}</td>
+						<td class="text-{#if $row[7] == 4#}danger{#elseif $row[7] == 5#}warning{#elseif $row[7] >= 6 && $row[7]<=10#}success{#elseif $row[7] == 11#}primary{#else#}muted{#/if#}">
+						{#if $row[7] == '11' && isset ( $smarty.session.username ) && ($smarty.session.username == $row[8] || $smarty.session.privilege.0 == 1 || isset($smarty.session.privilege.1.$contest))#}
+							{#if $contest != 0#}
+								<a href="/contest/ce/{#$contest#}/{#$row[0]#}">{#$statusArr[$row[7]]#}</a></td>
+							{#else#}
+								<a href="/code/ce/{#$row[0]#}">{#$statusArr[$row[7]]#}</a></td>
+							{#/if#}
+						{#else#}
+							{#$statusArr[$row[7]]#}</td>
+						{#/if#}
+						{#if isset($row[9])#}
+							<td>{#$row[9]#}</td>
+						{#/if#}
+						<td><a href="/user/show/{#$row[8]#}">{#$row[8]#}</a></td>
+						</tr>
+				{#/foreach#}
+			{#else#}
+				<tr><td colspan="9" class="text-center text-danger">筛选条件不合法，找不到这样的数据，请重试</td></tr>
+			{#/if#}
+		</table>
+		<nav>
+			<ul class="pagination pagination-lg text-center">
+				<li><a
+					href="/status?{#if $contest != 0#}&cid={#$contest#}{#/if#}&pid={#if isset($smarty.get.pid)#}{#$smarty.get.pid#}{#/if#}&Programmer={#if isset($smarty.get.Programmer)#}{#htmlspecialchars($smarty.get.Programmer)#}{#/if#}&lang={#if isset($smarty.get.lang)#}{#$smarty.get.lang#}{#/if#}&status={#if isset($smarty.get.status)#}{#$smarty.get.status#}{#/if#}">首页</a></li>
+				<li><a href="#">...</a></li>
+				<li><a href="/status?end={#if isset($sid)#}{#$sid + 1#}{#/if#}{#if $contest != 0#}&cid={#$contest#}{#/if#}&pid={#if isset($smarty.get.pid)#}{#$smarty.get.pid#}{#/if#}&Programmer={#if isset($smarty.get.Programmer)#}{#htmlspecialchars($smarty.get.Programmer)#}{#/if#}&lang={#if isset($smarty.get.lang)#}{#$smarty.get.lang#}{#/if#}&status={#if isset($smarty.get.status)#}{#$smarty.get.status#}{#/if#}">上一页</a></li>
+				<li><a href="#">...</a></li>
+				<li><a href="/status?start={#if isset($eid)#}{#$eid - 1#}{#/if#}{#if $contest != 0#}&cid={#$contest#}{#/if#}&pid={#if isset($smarty.get.pid)#}{#$smarty.get.pid#}{#/if#}&Programmer={#if isset($smarty.get.Programmer)#}{#htmlspecialchars($smarty.get.Programmer)#}{#/if#}&lang={#if isset($smarty.get.lang)#}{#$smarty.get.lang#}{#/if#}&status={#if isset($smarty.get.status)#}{#$smarty.get.status#}{#/if#}">下一页</a></li>
+				<li><a href="#">...</a></li>
+				<li><a href="/status?end=1{#if $contest != 0#}&cid={#$contest#}{#/if#}&pid={#if isset($smarty.get.pid)#}{#$smarty.get.pid#}{#/if#}&Programmer={#if isset($smarty.get.Programmer)#}{#htmlspecialchars($smarty.get.Programmer)#}{#/if#}&lang={#if isset($smarty.get.lang)#}{#$smarty.get.lang#}{#/if#}&status={#if isset($smarty.get.status)#}{#$smarty.get.status#}{#/if#}">尾页</a></li>
+			</ul>
+		</nav>
+	</div>
+</div>
+<script>
+    var t;
+$(document).ready(function(){
+		t=setTimeout("location.href='/status?{#if isset($smarty.get.start)#}&start={#$smarty.get.start#}{#/if#}{#if isset($smarty.get.end)#}&end=$smarty.get.end;{#/if#}{#if $contest != 0#}&cid={#$contest#}{#/if#}&pid={#if isset($smarty.get.pid)#}{#$smarty.get.pid#}{#/if#}&Programmer={#if isset($smarty.get.Programmer)#}{#htmlspecialchars($smarty.get.Programmer)#}{#/if#}&lang={#if isset($smarty.get.lang)#}{#$smarty.get.lang#}{#/if#}&status={#if isset($smarty.get.status)#}{#$smarty.get.status#}{#/if#}';", 10000)
+})
+	{#if isset($smarty.session.user_id) &&  $smarty.session.privilege.0 == 1#}
+		function rejudge(id) {
+			$.post("/admin/contestM/rejudge", {submit_id:id,cid:-1},function(data){
+				;
+			})
+		}
+	{#/if#}
+	</script>
+{#include file='footer.html'#}

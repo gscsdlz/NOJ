@@ -11,13 +11,7 @@
 			</div>
 			<div class="collapse navbar-collapse"
 				id="bs-example-navbar-collapse-1">
-				<?php
-				/**
-				 * 分离自header.php
-				 */
-				global $contest; // 参数引自@config.php
-				if (! $contest) {
-					?>
+				{#if $contest eq 0#}
 				<ul class="nav navbar-nav">
 					<li><a href="/">首页</a></li>
 					<li><a href="/problem/page">题目</a></li>
@@ -25,53 +19,49 @@
 					<li><a href="/rank/page">排名</a></li>
 					<li><a href="/contest/page">比赛</a></li>
 					<li><a href="/index/help">帮助</a></li>
+					<li><a href="/gitlab">GitLab</a></li>
 				</ul>
 				<form class="navbar-form navbar-left" role="search" method="get"
 					action="/problem/search">
 					<div class="form-group">
 						<input type="text" class="form-control" placeholder="输入题目或者来源信息	"
 							name="key"
-							value="<?php if(isset($_GET['key'])) echo htmlspecialchars($_GET['key']);?>">
+							value="{#if (isset($smarty.get.key))#}{#$smarty.get.key#}{#/if#}">
 					</div>
 					<button type="submit" class="btn btn-default">搜索</button>
 				</form>
-				<?php }  else {?>
+				{#else#}
 				<ul class="nav navbar-nav">
 					<li><a href="/contest/page">比赛列表</a></li>
-					<li class="active"><a href="/contest/show/<?php echo $contest;?>">题目</a></li>
-					<li><a href="/status?cid=<?php echo $contest;?>">状态</a></li>
-					<li><a href="/contest/ranklist/<?php echo $contest;?>">排名</a></li>
-					<li><a href="/contest/asklist/<?php echo $contest;?>">问答</a></li>
+					<li{#if isset($problemNavbar)#} class="active"{#/if#}><a href="/contest/show/{#$contest#}">题目</a></li>
+					<li{#if isset($statusNavbar)#} class="active"{#/if#}><a href="/status?cid={#$contest#}">状态</a></li>
+					<li{#if isset($ranklistNavbar)#} class="active"{#/if#}><a href="/contest/ranklist/{#$contest#}">排名</a></li>
+					<li{#if isset($askNavbar)#} class="active"{#/if#}><a href="/contest/asklist/{#$contest#}">问答</a></li>
 				</ul>
-				<?php }?>
-				<?php
-				if (! isset ( $_SESSION ['username'] )) {
-					$loginStatus = false;
-					?>
+				{#/if#}
+				{#if !isset($smarty.session.username)#}
 				<ul class="nav navbar-nav navbar-right">
 					<li data-toggle="modal" data-target="#signModal" id="signButton"><a href="#">登录</a></li>
 					<li data-toggle="modal" data-target="#regModal" id="regButton"><a href="#">注册</a></li>
 				</ul>
-				<?php
-				} else {
-					$loginStatus = true;
-					?>
+				{#else#}
 				<ul class="nav navbar-nav navbar-right">
 					<li class="dropdown"><a href="#" class="dropdown-toggle"
-						data-toggle="dropdown" id="realname"><?php  echo $_SESSION['username'];?><span
+						data-toggle="dropdown" id="realname">{#$smarty.session.username#}<span
 							class="caret"></span></a>
 						<ul class="dropdown-menu" role="menu">
-							<li><a href="/user/show/<?php echo $_SESSION['username']?>">用户界面</a></li>
-				<?php if($_SESSION['privilege'][0] == 1) 
-						  echo '<li><a href="/admin/">后台管理</a></li>';
-					  else if(isset($_SESSION['privilege'][1]))
-					  	  echo '<li><a href="/admin/contestManager">比赛管理</a></li>';
-				?>
+							<li><a href="/user/show/{#$smarty.session.username#}">用户界面</a></li>
+				{#if $smarty.session.privilege.0 eq 1#}
+						  <li><a href="/admin/">后台管理</a></li>
+				{#elseif isset($smarty.session.privilege.1)#}
+					  	  <li><a href="/admin/contestManager">比赛管理</a></li>
+				{#/if#}
 							<li class="divider"></li>
 							<li id="logout"><a href="#">退出登录</a></li>
-						</ul></li>
+						</ul>
+					</li>
 				</ul>
-				<?php }?>
+				{#/if#}
 			</div>
 			<!-- /.navbar-collapse -->
 		</div>
@@ -79,12 +69,11 @@
 	</nav>
 
 	<div class="row" style="margin-top:60px">
-<?php if($contest) {?>
-		<marquee id="message" class="text-danger" onclick="window.location.href='/contest/asklist/<?php echo $contest;?>'"><h4>有关比赛的新通知，会在这里显示，点击即可查看！</h4></marquee>
-<?php }?>
+{#if $contest neq 0#}
+		<marquee id="message" class="text-danger" onclick="window.location.href='/contest/asklist/{$contest}'"><h4>有关比赛的新通知，会在这里显示，点击即可查看！</h4></marquee>
+{#/if#}
 	</div>
-
-	<?php if(!$loginStatus) { ?>
+	{#if !isset($smarty.session.username)#}
 	<div class="modal fade" id="signModal" tabindex="-1" role="dialog"
 		aria-labelledby="signModalLabel" aria-hidden="true">
 		<div class="modal-dialog">
@@ -93,7 +82,7 @@
 					<button type="button" class="close" data-dismiss="modal">
 						<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
 					</button>
-					<h2 class="modal-title" id="codeModalLabel">登录</h2>
+					<h2 class="modal-title">登录</h2>
 				</div>
 				<div class="modal-body">
 					<form class="form-horizontal" role="form">
@@ -148,7 +137,7 @@
 					<button type="button" class="close" data-dismiss="modal">
 						<span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
 					</button>
-					<h2 class="modal-title" id="codeModalLabel">注册</h2>
+					<h2 class="modal-title">注册</h2>
 				</div>
 				<div class="modal-body">
 					<form class="form-horizontal" role="form">
@@ -218,11 +207,11 @@
 			</div>
 		</div>
 	</div>
-	<?php }?>
+	{#/if#}
 	<script type="text/javascript">
-<?php if($contest) {?>
+{#if $contest neq 0#}
 	function get_message(){
-		$.post("/contest/get_message", {cid:<?php echo $contest;?>}, function(data){
+		$.post("/contest/get_message", {cid:{#$contest#} }, function(data){
 			var arr = eval("(" + data + ")");
 			
 			if(arr['status']) {
@@ -232,8 +221,8 @@
 			}
 		})
 	}
-<?php }?>
-<?php if(!$loginStatus) {?>
+{#/if#}
+{#if !isset($smarty.session.username)#}
     function login(){
         $("#loginError").hide();
         $("#lvcodeEmptyError").hide();
@@ -266,13 +255,13 @@
                 }
             })
     }
-<?php }?>
+{#/if#}
 		$(document).ready(function() {
-	<?php if($contest) {?>
+{#if $contest neq 0#}
 		get_message();
 			self.setInterval("get_message()", 120 * 1000);
-	<?php }?> 
-	<?php if(!$loginStatus) { ?>
+{#/if#}
+{#if !isset($smarty.session.username)#}
 
 		$("#lvcodeEmptyError").hide();
 		$("#lvcodeError").hide();
@@ -405,7 +394,7 @@
 						}
 					})
 			})
-	<?php }?>
+{#/if#}
 		$("#logout").click(function() {
 				$.post("/login/logout", function(data) {
 					var arr = eval("(" + data + ")");

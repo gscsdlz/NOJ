@@ -1,24 +1,24 @@
 <?php
 if (defined ( 'APPPATH' )) {
 	require APPPATH . '/Model/statusModel.php';
-	require APPPATH . '/View/VIEW.class.php';
+	require APPPATH . '/Include/smarty/core/Smarty.class.php';
 } else {
 	die ();
 }
-class statusControl {
+class statusControl extends Smarty {
 	private static $model = null;
 	public function __construct() {
+	    parent::__construct();
 		if (self::$model == null) {
 			self::$model = new statusModel ();
 		}
 	}
 	public function __call($method, $args) {
-		VIEW::show ( 'error', array (
-				'errorInfo' => 'Invalid action' 
-		) );
+        parent::assign('errorInfo', 'Invalid Action');
+        parent::display('error.html');
 	}
 	public function index() {
-		global $contest;
+	    $contest = 0;
 		$cid = (int) get('cid');
 		$pro_id = ( int ) get ( 'pid' );
 		if($cid) {
@@ -34,6 +34,15 @@ class statusControl {
 		$start = ( int ) get ( 'start' );
 		$end = ( int ) get ( 'end' );
 		$results = self::$model->getStatus ( $submit_id, $pro_id, $username, $lang, $status, $start, $end, $cid);
-		VIEW::loopshow ( 'status', $results );
+		global $langArr;
+		global $statusArr;
+		parent::assign('langArr', $langArr);
+		parent::assign('statusArr', $statusArr);
+		parent::assign('contest', $contest);
+		if($contest){
+            parent::assign('statusNavbar', true);
+        }
+		parent::assign('lists', $results);
+		parent::display('status.html');
 	}
 }

@@ -1,45 +1,42 @@
+{#include file='header.html'#}
+{#include file='navbar.html'#}
 <div class="row">
 	<div class="col-md-6 col-md-offset-3">
 		<div class="panel panel-default">
 			<div class="panel-head">
 				<ol class="breadcrumb">
-					<?php
-					if (isset ( $args [0] ) && count ( $args [0] )) {
-						if ($args [0] [5] < 1000) {
-							echo '<li><a href="#">全局消息</a></li>';
-						} else {
-							echo '<li><a href="/contest/problem/' . $args [0] [2] . '/' . $args [0] [5] . '">' . $args [0] [5] . '</a></li>';
-						}
-						echo '<li><a href="/user/show/' . $args [0] [7] . '">' . $args [0] [7] . '</a></li>';
-						echo '<li class="active">' . $args [0] [1] . '</li>';
-						echo '<li class="active">' . date ( "Y-m-d H:i:s", $args [0] [4] ) . '</li>';
-						echo '<li><button type="button" data-toggle="modal" ';
-						if (isset ( $_SESSION ['username'] ))
-							echo 'data-target="#answerModal"';
-						else
-							echo 'data-target="#signModal"';
-						echo ' class="btn btn-success">回复</button></li>';
-					}
-					?>
+					{#if isset ( $info ) && count ( $info ) #}
+						{#if $info[5] < 1000 #}
+							<li><a href="#">全局消息</a></li>
+						{#else#}
+							<li><a href="/contest/problem/{#$info[2]#}'/{#$info[5]#}">{#$info[5]#}</a></li>
+						{#/if#}
+						<li><a href="/user/show/{#$info[7]#}">{#$info[7]#}</a></li>
+						<li class="active">{#htmlspecialchars($info[1])#}</li>
+						<li class="active">{#date ( "Y-m-d H:i:s", $info[4])#}</li>
+						<li><button type="button" data-toggle="modal" {#if isset($smarty.session.username)#}data-target="#answerModal"{#else#}data-target="#signModal"{#/if#} class="btn btn-success">回复</button></li>
+					{#/if#}
 				</ol>
 
 			</div>
 			<div class="panel-body">
-			<?php
-			if (isset ( $args [1] ) && count ( $args [1] )) {
-				$len = count ( $args );
-				for($i = 1; $i < $len; ++ $i) {
-					echo '<div class="panel panel-default"><div class="panel-head"><ol class="breadcrumb">';
-					echo '<li><a href="/user/show/' . $args [$i] [5] . '">' . $args [$i] [5] . '</a></li>';
-					echo '<li class="active">' . date ( "Y-m-d H:i:s", $args [$i] [4] ) . '</li>';
-					if (isset ( $_SESSION ['user_id'] ) && ($_SESSION ['user_id'] == $args [$i] [3] || $_SESSION['privilege'][0] == 1 || isset($_SESSION['privilege'][1][$contest])))
-						echo '<li><button id="del'.$args[$i][0].'"type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" >删除</button></li>';
-					echo '</ol></div><div class="panel-body">';
-					echo htmlspecialchars($args [$i] [2]);
-					echo "</div></div>\n";
-				}
-				?>
-			<?php } else { ?>
+			{#if isset($lists ) && count($lists)#}
+				{#foreach $lists as $row#}
+					<div class="panel panel-default"><div class="panel-head">
+						<ol class="breadcrumb">
+							<li><a href="/user/show/{#$row[5]#}">{#$row[5]#}</a></li>
+							<li class="active">{#date( "Y-m-d H:i:s", $row[4] )#}</li>
+						{#if isset ( $smarty.session.user_id ) && ($smarty.session.user_id == $row[3] || $smarty.session.privilege.0 == 1 || isset($smarty.session.privilege.1.$contest))#}
+							<li><button id="del{#$row[0]#}" type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" >删除</button></li>
+						{#/if#}
+						</ol>
+					</div>
+						<div class="panel-body">
+							{#htmlspecialchars($row[2])#}
+						</div>
+					</div>
+				{#/foreach#}
+			{#else#}
 				<div class="panel panel-default">
 					<div class="panel-head">
 						<ol class="breadcrumb">
@@ -47,7 +44,7 @@
 						</ol>
 					</div>
 				</div>
-			<?php }?>
+			{#/if#}
 		</div>
 		</div>
 	</div>
@@ -85,7 +82,7 @@
 				<form class="form-horizontal" role="form">
 					<label class=" control-label text-danger" id="answerError">未知错误，请重试</label>
 					<div class="form-group">
-						<label for="inputUsername" class="col-sm-2 control-label">回复内容</label>
+						<label  class="col-sm-2 control-label">回复内容</label>
 						<div class="col-sm-10  text-center">
 							<textarea class="form-control" id="topic_answer"></textarea>
 							<label class=" control-label text-danger" id="answerEmptyError">问题为空</label>
@@ -124,7 +121,7 @@
 				if(answer.length == 0) {
 					$("#answerEmptyError").show();
 				} else {
-					$.post("/ask/submit_answer", {answer:answer, question_id:<?php echo $args[0][0];?>}, function(data){
+					$.post("/ask/submit_answer", {answer:answer, question_id:{#$info[0]#}}, function(data){
 						var arr = eval("(" + data +")");
 						if(arr['status']) {
 							window.location.reload();
@@ -136,3 +133,4 @@
 			})
 	})
 </script>
+{#include file='footer.html'#}

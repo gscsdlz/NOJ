@@ -1,0 +1,176 @@
+{#include file='header.html'#}
+{#include file='navbar.html'#}
+<div class="row">
+	<div class="col-md-10 col-md-offset-1 text-center">
+        {#if $options < 0 && !(isset($smarty.session.user_id) && ($smarty.session.privilege.0 == 1 || isset($smarty.session.privilege.$contest)))#}
+            <div class="well"><h1 class="text-danger">本场比赛已经隐藏排名</h1></div>
+        {#/if#}
+    <h1>{#$contest_name#}</h1><p>&nbsp;</p>
+	<form class="form-inline" role="form">
+		<div class="form-group">
+			<label>显示小组排名</label>
+			<select class="form-control" id="groupfilter">
+			<option value="">ALL</option>
+    {#if isset($teams) && count($teams) != 0#}
+        {#foreach $teams as $value #}
+            <option value="{#$value#}">{#$value#}</option>
+        {#/foreach#}
+    {#/if#}
+			</select>
+		</div>
+		<div class="form-group">
+			<button id="filter" type="button" class="btn btn-primary">筛选</button>
+		</div>
+		<div class="form-group">
+			<button id="export" type="button" class="btn btn-success " onclick="window.location.href='/Src/File/contest_rankList{#$contest#}.csv'">导出CSV数据</button>
+		</div>
+	{#if isset($ttl) #}
+		<br /><label class="text-danger">数据来自缓存，每5分钟更新一次, 请勿频繁刷新 下次更新还有{#$ttl#}s</label>
+	{#/if#}
+	
+	</form>
+<nav aria-label="Page navigation">
+  <ul class="pagination pagination-lg">
+    <li>
+	    <a href="/contest/ranklist/{#$contest#}/0/{#$team#}" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+	{#for $i = 0 to $pageT -1#}
+		<li><a href="/contest/ranklist/{#$contest#}/{#$i#}/{#$team#}">{#$i#}</a></li>
+	{#/for#}
+    <li>
+	<a href="/contest/ranklist/{#$contest#}/{#($pageT - 1)#}/{#$team#}" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+
+		<table class="table table-hover table-bordered"
+			style="vertical-align: middle; margin-top:20px;">
+			<tr>
+				<th>排名</th>
+				<th>用户名</th>
+				<th>所在小组</th>
+                {#if $oi_mode != 1#}
+				    <th>通过题目总数</th>
+				    <th>总时长</th>
+                {#else#}
+                    <th>分数</th>
+                    <th>提交次数</th>
+                {#/if#}
+
+			{#if isset($ids) && count ($ids)#}
+				{#foreach $ids as $row#}
+					<th><a href="/contest/problem/{#$contest#}/{#$row#}">{#$row#}</a></th>
+				{#/foreach#}
+			{#/if#}
+		</tr>
+        {#if $oi_mode == 1#}
+            {#if isset ($ranks) && count($ranks)#}
+                {#foreach $ranks as $row#}
+                    {#$k = $row[5]#}
+                    <tr>
+                        <td>{#$k#}
+                    {#if $row[1] > 0 && $k <= $feNum + $cuNum + $agNum + $auNum#}
+                        <img width="30px" height="30px" src="/Src/Image/{#if $k <= $auNum#}au.svg{#elseif $k <= $agNum + $auNum #}ag.svg{#elseif $k <= $cuNum + $agNum + $auNum#}cu.svg{#else#}fe.svg{#/if#}" />
+                    {#/if#}
+                        </td>
+                    <td><a href="/user/show/{#$row[2]#}">{#$row[2]#}({#$row[4]#})</a></td>
+                    <td>{#$row[3]#}</td>
+                    <td>{#$row[0]#}</td>
+                    <td>{#$row[1]#}</td>
+                    {#foreach $ids as $i#}
+                        {#if isset($row[$i]) #}
+                            {#if $row[$i][2] == true#}
+                              <td class="bg-success">{#$row[$i][0]#}<br/>({#$row[$i][1]#})
+                            {#else#}
+                              <td class="bg-danger">{#$row[$i][0]#}<br/>({#$row[$i][1]#})
+                            {#/if#}
+                            </td>
+                        {#else#}
+                            <td></td>
+                        {#/if#}
+                    {#/foreach#}
+                    </tr>
+                {#/foreach#}
+            {#/if#}
+        {#else#}
+            {#if isset ($ranks) && count($ranks)#}
+                {#foreach $ranks as $row#}
+                {#$k = $row[5]#}
+                <tr>
+                    <td>{#$k#}
+                        {#if $row[1] > 0 && $k <= $feNum + $cuNum + $agNum + $auNum#}
+                        <img width="30px" height="30px" src="/Src/Image/{#if $k <= $auNum#}au.svg{#elseif $k <= $agNum + $auNum #}ag.svg{#elseif $k <= $cuNum + $agNum + $auNum#}cu.svg{#else#}fe.svg{#/if#}" />
+                        {#/if#}
+                    </td>
+                    <td><a href="/user/show/{#$row[2]#}">{#$row[2]#}({#$row[4]#})</a></td>
+                    <td>{#$row[3]#}</td>
+                    <td>{#$row[1]#}</td>
+                    <td>{#format_time($row[0])#}</td>
+                    {#foreach $ids as $i #}
+                            {#if isset($row[$i]) #}
+                                {#if isset($row[$i][2]) && $row[$i][2] == 1#}
+                                    <td class="bg-primary">{#format_time($row[$i][0])#}{#if $row[$i][1] neq 0#}<br/>(-{#$row[$i][1]#}){#/if#}
+                                {#elseif $row[$i][0] && !$row[$i][1]#}
+                                    <td class="bg-success">{#format_time($row[$i][0])#}
+                                {#elseif $row[$i][0] && $row[$i][1]#}
+                                    <td class="bg-success">{#format_time($row[$i][0])#}<br/>(-{#$row[$i][1]#})
+                                {#else#}
+                                    <td class="bg-danger text-center">-{#$row[$i][1]#}
+                                {#/if#}
+                                </td>
+                            {#else#}
+                                <td></td>
+                            {#/if#}
+                    {#/foreach#}
+                </tr>
+                {#/foreach#}
+            {#/if#}
+        {#/if#}
+	</table>
+    <nav aria-label="Page navigation">
+        <ul class="pagination pagination-lg">
+            <li>
+                <a href="/contest/ranklist/{#$contest#}/0/{#$team#}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {#for $i = 0 to $pageT -1#}
+            <li><a href="/contest/ranklist/{#$contest#}/{#$i#}/{#$team#}">{#$i#}</a></li>
+            {#/for#}
+            <li>
+                <a href="/contest/ranklist/{#$contest#}/{#($pageT - 1)#}/{#$team#}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+	</div>
+</div>
+<script>
+	$(document).ready(function(){
+		
+//		$(".table-bordered tr").each(function(index, item){
+//			if(index != 0)
+//			groupSet.add($(this).children().eq(2).html());
+//		})
+//		groupSet.forEach(function(item){
+//			$("#groupfilter").append('<option value='+ item.toString() +'>'+item.toString()+'</option>');
+//		})
+		$("#filter").click(function(){
+			var group = $("#groupfilter").val();
+//			$(".table-bordered tr").each(function(index, item){
+//				if(index != 0 && $(this).children().eq(2).html() != group && group != "")
+//					$(this).hide();
+//				else
+//					$(this).show();
+//			})
+            window.location.href = "/contest/ranklist/{#$contest#}/{#$pageN#}/"+ group;
+		})
+	})
+</script>
+<?php }?>
+{#include file='footer.html'#}}

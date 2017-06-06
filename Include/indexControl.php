@@ -1,21 +1,21 @@
 <?php
 if(defined('APPPATH')) {
-	require APPPATH.'/View/VIEW.class.php';
+	require APPPATH.'/Include/smarty/core/Smarty.class.php';
 } else {
 	die();
 }
-class indexControl {
+class indexControl extends Smarty{
 	public function __construct() {
+	    parent::__construct();
 	}
 	public function index() {
-		VIEW::loopshow ( 'default', array () );
+	    parent::display("default.html");
 	}
 	public function help(){
-		VIEW::loopshow ( 'help', array () );
+		parent::display("help.html");
 	}
 	public function __call($method, $args) {
-		VIEW::show ( 'error', array (
-				'errorInfo' => 'Invalid Action'
-		) );
+        parent::assign('errorInfo', 'Invalid Action');
+        parent::display('error.html');
 	}
 }

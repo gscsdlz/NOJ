@@ -1,0 +1,73 @@
+{#include file='header.html'#}
+{#include file='navbar.html'#}
+<div class="row">
+	<div class="col-md-6 col-md-offset-3 text-center">
+		{#if isset($smarty.get.pageid)#}
+			{#$pageid = $smarty.get.pageid#}
+		<nav>
+			<ul class="pagination pagination-lg">
+				<li><a href="/problem/page/{#if $pageid == 0 #}{#0#}{#else#}{#$pageid - 1#}{#/if#}">&laquo;</a></li>
+				<li><a href="/problem/page/0">0</a></li>
+				<li><a href="#">...</a></li>
+			
+			{#$maxPage = ceil($lists[0][0] / $lists[0][1])#}
+			{#for $i = 1 to $maxPage - 2#}
+				<li><a href="/problem/page/{#$i#}">{#$i#}</a></li>
+			{#/for#}
+				<li><a href="#">...</a></li>
+			 	<li><a href="/problem/page/{#$maxPage - 1#}">{#$maxPage - 1#}</a></li>
+				<li><a href="/problem/page/{#if $pageid + 1 == $maxPage#}{#$pageid#}{#else#}$pageid + 1#}{#/if#}">&raquo;</a></li>
+			</ul>
+		</nav>
+		{#/if#}
+		<table class="table table-hover text-left">
+			<tr>
+				<th>题目编号</th>
+				<th>题目名</th>
+				<th>题目通过率</th>
+			</tr>
+			{#if count($lists) != 0#}
+				{#foreach $lists as $row#}
+						{#if !isset($row[2])#}
+							{#continue#}
+						{#/if#}
+						{#if isset($row[4])#}
+							<tr class="success">
+						{#elseif isset($row[5]) && $row[5] > 0#}
+							<tr class="danger">
+						{#else#}
+							<tr>
+						{#/if#}
+						<td>{#$row[0]#}
+						{#if isset($row[5]) && $row[5] > 0#}
+							<span class="badge">{#$row[5]#}</span>
+						{#/if#}
+						</td>
+						<td align="left"><a href="/problem/show/{#$row[0]#}">{#$row[1]#}</a></td>
+						<td>{#$row[2]#}/{#$row[3]#}</td></tr>
+				{#/foreach#}
+			{#else#}
+				<tr><td colspan="3" class="text-danger text-center">找不到题目</td></tr>
+			{#/if#}
+		</table>
+		{#if isset($smarty.get.pageid)#}
+		{#$pageid = $smarty.get.pageid#}
+		<nav>
+			<ul class="pagination pagination-lg">
+				<li><a href="/problem/page/{#if $pageid == 0 #}{#0#}{#else#}{#$pageid - 1#}{#/if#}">&laquo;</a></li>
+				<li><a href="/problem/page/0">0</a></li>
+				<li><a href="#">...</a></li>
+
+				{#for $i = 1 to $maxPage - 2#}
+				<li><a href="/problem/page/{#$i#}">{#$i#}</a></li>
+				{#/for#}
+				<li><a href="#">...</a></li>
+				<li><a href="/problem/page/{#$maxPage - 1#}">{#$maxPage - 1#}</a></li>
+				<li><a href="/problem/page/{#if $pageid + 1 == $maxPage#}{#$pageid#}{#else#}$pageid + 1#}{#/if#}">&raquo;</a></li>
+			</ul>
+		</nav>
+		{#/if#}
+	</div>
+</div>
+﻿{#include file='footer.html'#}
+

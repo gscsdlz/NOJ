@@ -1,0 +1,92 @@
+{#include file='header.html'#}
+{#include file='navbar.html'#}
+<div class="row">
+	<div class="col-md-6 col-md-offset-3 text-center">
+		{#if $contest != 0 && isset($info) && count($info)#}
+			<h1>{#$info['contest_name']#}</h1>
+			<p>&nbsp;</p>
+			<h4 class="text-danger">开始时间：{#date("Y-m-d H:i:s", $info['c_stime'] )#} 结束时间：{#date("Y-m-d H:i:s", $info['c_etime'] )#}</h4>
+		{#/if#}
+		{#if isset($pass)#}
+			<p>&nbsp;</p>
+		<div class="form-horizontal">
+			<div class="form-group">
+				<label for="contestpass" class=" col-sm-4 control-label">请输入比赛密码</label>
+				<div class="col-sm-4">
+					<input type="password" class="form-control" id="contestpass"
+						name="contestpass" placeholder="Password"> <label
+						id="EmptyContestPass" class=" col-sm-4 control-label text-danger">密码为空</label>
+					<label id="ContestPassError"
+						class=" col-sm-4 control-label text-danger">密码错误</label>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<div class="col-sm-10">
+					<button type="button" class="btn btn-default" id="submitPass" data-toggle="modal" data-target="#signModal">提交</button>
+				</div>
+			</div>
+		</div>
+		<script>
+			$("document").ready(function(){
+				$("#EmptyContestPass").hide();
+				$("#ContestPassError").hide();
+				$("#submitPass").click(function(){
+					$("#EmptyContestPass").hide();
+					$("#ContestPassError").hide();
+					var pass = $("#contestpass").val();
+					if(pass.length == 0)
+						$("#EmptyContestPass").show();
+					else
+						$.post("/contest/check/{#$contest#}", {contestpass:pass} , function(data){
+							var obj = eval("(" + data + ")");
+							if(obj['status'] == false) {
+								$("#ContestPassError").show();
+							} else {
+								window.location.reload();
+							}
+						})
+				})
+			})
+		</script>
+		{#elseif isset($timeError)#}
+			<h3 class="text-success text-center">比赛还未开始 当前时间：<?php echo date('Y-m-d H:i:s',  time());?></h3>
+		{#elseif isset($privilegeError)#}
+			<h3 class="text-success text-center">对不起您没有登录或者权限不足，请联系管理员</h3>
+		{#elseif isset ($lists) && count($lists) != 0#}
+			<table class="table table-hover text-left">
+			<tr>
+				<th>题目编号</th>
+				<th>题目名</th>
+				<th>题目通过率</th>
+			</tr>
+			{#foreach $lists as $row #}
+				
+				{#if !isset($row[2])#}
+					{#continue#}
+				{#/if#}
+				{#*//订正由于contestModel.php @116*#}
+				{#if isset($row[4]) && is_bool($row[4])#}
+					<tr class="success">
+				{#elseif isset($row[5]) && $row[5] > 0#}
+					<tr class="danger">
+				{#else#}
+					<tr>
+				{#/if#}
+				<td>{#$row[0]#}
+				{#if isset($row[5]) && $row[5] > 0#}
+					<span class="badge">{#$row[5]#}</span>
+				{#/if#}
+				</td>
+				<td align="left"><a href="/contest/problem/{#$contest#}/{#$row[0]#}">&nbsp;{#$row[1]#}</a></td>
+				<td>{#$row[2]#}/{#$row[3]#}</td>
+			</tr>
+			{#/foreach#}
+		{#else#}
+			<h3 class="text-success text-center">找不到题目</h3>
+		{#/if#}
+		</table>
+	</div>
+</div>
+﻿{#include file='footer.html'#}
+

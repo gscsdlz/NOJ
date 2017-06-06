@@ -110,8 +110,9 @@ class rankModel extends DB {
             $status = redisDB::get ( 'contest_rank:' . $cid );
             if ($status !== false) {
                 $tmp = json_decode ( $status, true );
-               // $cache = true;
+                $cache = true;
                 $medalNum = json_decode(redisDB::get('contest_medal_num:'.$cid), true );
+                $oi_mode = json_decode(redisDB::get('contest_oi:'.$cid), true );
             }
         }
         if($cache == false) {
@@ -159,19 +160,28 @@ class rankModel extends DB {
                 }
                 $rank++;
             }
-            $args['pageN'] = $page;
-            $args['pageT'] = (int)(($p + 1) / RANKPAGEMAXSIZE) + 1;
-            $args['teams'] = array_unique($groups);
-            $args['oi_mode'] = $oi_mode;
             if($group == -1)
                 $group = "";
-            $args['team'] = $group;
-            $args['medal'] = $medalNum;
-            $args['options'] = $options;
+
+
+            $info = array(
+                'pageN' => $page,
+                'pageT' => (int)(($p + 1) / RANKPAGEMAXSIZE) + 1,
+                'teams' => array_unique($groups),
+                'oi_mode' => $oi_mode,
+                'team' => $group,
+                'auNum' => $medalNum['0'],
+                'agNum' => $medalNum['1'],
+                'cuNum' => $medalNum['2'],
+                'feNum' => $medalNum['3'],
+                'options' => $options
+
+            );
             if($cache == true) {
-                $args['ttl'] = redisDB::ttl('contest_rank:' . $cid);
+                $info['ttl'] = redisDB::ttl('contest_rank:' . $cid);
             }
-            return $args;
+
+            return [$info, $args];
         }
     }
 

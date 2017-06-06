@@ -1,0 +1,34 @@
+{#header('HTTP/1.1 404 Not Found')#}
+{#include file='header.html'#}
+{#include file='navbar.html'#}
+<div class="row">
+	<div class="col-md-8 col-md-offset-2 text-center text-danger">
+	
+			{#if $errorInfo eq 'Invalid Id'#}
+				<h1>拒绝提供这个页面 请求序号不合法</h1>
+				<img src="/Src/Image/Invalid Id.jpg" alt="..." width="400px" class="img-rounded">
+            {#elseif $errorInfo eq 'Invalid Action'#}
+				<h1>你调用了尚未编写的方法</h1>
+				<a href="/"><img src="/Src/Image/Invalid Action.jpg" alt="..." width="400px" class="img-rounded"></a>
+            {#elseif $errorInfo eq 'Invalid User'#}
+				<h1>你要查看的用户还没有注册，所以：</h1>';
+				<img src="/Src/Image/Invalid User.jpg" alt="..."  width="400px" class="img-rounded">
+            {#elseif $errorInfo eq 'Privilege Error' or $errorInfo eq 'Time Error'#}
+				<h1>权限不足或者比赛还未开始，所以：</h1>
+				<img src="/Src/Image/Invalid User.jpg" alt="..."  width="400px" class="img-rounded">'
+            {#elseif $errorInfo eq 'Admin Error'#}
+				<h1>拒绝提供这个页面 权限不足</h1>
+				<img src="/Src/Image/Invalid Id.jpg" alt="..." width="400px" class="img-rounded">
+            {#elseif $errorInfo eq 'refresh Error'#}
+				<h1>请不要频繁刷新</h1>
+				<img src="/Src/Image/Invalid Id.jpg" alt="..." width="400px" class="img-rounded">
+			}
+		 {#/if#}
+	</div>
+</div>
+﻿<script>
+$(document).ready(function(){
+	var t=setTimeout("history.go(-1)", 3000)
+})
+</script>
+{#include file='footer.html'#}

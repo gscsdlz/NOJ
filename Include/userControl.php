@@ -2,14 +2,15 @@
 if (defined ( 'APPPATH' )) {
 	require APPPATH . '/Model/userModel.php';
 	require APPPATH . '/Model/rankModel.php';
-	require APPPATH . '/View/VIEW.class.php';
+	require APPPATH . '/Include/smarty/core/Smarty.class.php';
 } else {
 	die ();
 }
-class userControl {
+class userControl extends Smarty {
 	private static $model = null;
 	private static $rankmodel = null;
 	public function __construct() {
+	    parent::__construct();
 		if (self::$model == null) {
 			self::$model = new userModel ();
 		}
@@ -31,19 +32,29 @@ class userControl {
 	public function show() {
 		$username = urldecode(get ( 'id' ));
 		$user_id = self::$model->getId ( $username );
-		$arg [] = self::$model->getStatus ( $user_id );
-		$arg [] = self::$model->get_ac_problem ( $user_id );
-		$arg [] = self::$model->get_nac_problem ( $user_id );
-		$arg [] = self::$model->get_user_info ( $user_id );
-		$arg [] = self::$model->get_contest_info ( $user_id );
-		$arg [] = self::$model->get_group_info ();
-		$arg [] = self::$rankmodel->getRank ( 0, $user_id );
-		if ($arg [3] != null)
-			VIEW::loopshow ( 'user', $arg );
+		$arg = self::$model->getStatus ( $user_id );
+		parent::assign('status', $arg);
+		$arg = self::$model->get_ac_problem ( $user_id );
+		parent::assign('ac_pros', $arg);
+		$arg = self::$model->get_nac_problem ( $user_id );
+		parent::assign('wa_pros', $arg);
+		$userinfo = self::$model->get_user_info ( $user_id );
+		parent::assign($userinfo);
+		$arg = self::$model->get_contest_info ( $user_id );
+		parent::assign('contests',$arg);
+		$arg = self::$model->get_group_info ();
+		parent::assign('groups', $arg);
+		$arg = self::$rankmodel->getRank ( 0, $user_id );
+		parent::assign('ranks', $arg);
+		if ($user_id > 0) {
+			parent::display('user.html');
+		}
 		else
-			VIEW::show ( 'error', array (
-					'errorInfo' => 'Invalid User' 
-			) );
+        {
+            parent::assign('errorInfo', 'Invalid User');
+            parent::display('error.html');
+        }
+
 	}
 	public function uploadHeader() {
 		$allowType = array (

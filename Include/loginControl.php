@@ -170,14 +170,12 @@ class loginControl {
 				$status = self::$model->reset_pass($d, $pass);
 				if($status == true)
 					redisDB::del("forgetPass:".$token);
-                VIEW::show("forget", array(
-                    'status' => $status,
-					'pass' => $pass
-                ));
+                parent::assign('status', $status);
+                parent::assign('pass', $pass);
+                parent::display('forget.html');
 			} else {
-                VIEW::show("forget", array(
-                    'status' => false
-                ));
+                parent::assign('status', false);
+                parent::display('forget.html');
 			}
 		}
 	}

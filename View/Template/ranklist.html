@@ -1,0 +1,45 @@
+{#include file='header.html'#}
+{#include file='navbar.html'#}
+<div class="row">
+	<div class="col-md-8 col-md-offset-2 text-center">
+		<table class="table table-hover text-left">
+			<tr>
+				<th>排名</th>
+				<th>用户名</th>
+				<th>签名</th>
+				<th>通过题目数</th>
+				<th>提交题目数</th>
+				<th>AC率</th>
+			</tr>
+			{#foreach $lists as $row#}
+						{#if isset($smarty.session.username) && $smarty.session.username == $row[0]#}
+							<tr class="bg-danger">
+						{#else#}
+							<tr>
+						{#/if#}
+						<td>{#$row[4]#}</td>
+						<td><a href="/user/show/{#$row[0]#}">{#$row[0]#}({#$row[5]#})</a></td>
+						<td>{#$row[1]#}</td>
+						<td>{#$row[2]#}</td>
+						<td>{#$row[3]#}</td>
+						{#if $row[3] == 0#}
+							{#$row[3] = 1#}
+						{#/if#}
+						<td>{#number_format($row[2] / $row[3] * 100, 2, '.', '')#}%</td>
+						</tr>
+			{#/foreach#}
+		</table>
+		<nav>
+			<ul class="pagination pagination-lg text-center">
+				<li><a href="/rank/page/0">首页</a></li>
+				<li><a href="#">...</a></li>
+				<li><a href="/rank/page/{#if isset($smarty.get.id) && $smarty.get.id > 0#}{#$smarty.get.id - 1#}{#/if#}">上一页</a></li>
+				<li><a href="#">...</a></li>
+				<li><a href="/rank/page/{#if isset($smarty.get.id)#}{#if $smarty.get.id < ($total + 1)/ $pageMax - 1 #}{#$smarty.get.id+1#}{#/if#}{#else#}1{#/if#}">下一页</a></li>
+				<li><a href="#">...</a></li>
+				<li><a href="/rank/page/{#(int)(($total + 1) / $pageMax)#}">尾页</a></li>
+			</ul>
+		</nav>
+	</div>
+</div>
+{#include file='footer.html'#}

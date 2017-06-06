@@ -167,3 +167,33 @@ function sendMail($to, $title, $body) {
     $status = $mail->send ();
     return $status;
 }
+
+function tmpOutput($cid){
+    $path = "/var/www/html/codes/contest".$cid."/";
+    $db = new DB();
+    $res = $db->query("SELECT users.username, users.nickname, status.status, status.lang, codes.code, status.pro_id, status.submit_id FROM users LEFT JOIN status ON (users.user_id = status.user_id) LEFT JOIN codes ON (codes.submit_id = status.submit_id) WHERE contest_id = ? and users.user_id = 469 ", array($cid));
+
+    while($row = $res->fetch(PDO::FETCH_NUM)) {
+        if(!file_exists($path.$row[0]."(".$row[1].")")){
+            mkdir($path.$row[0]."(".$row[1].")/AC", 0777, true);
+            mkdir($path.$row[0]."(".$row[1].")/WA", 0777, true);
+        } else {
+            $inner_id = $db->query_one("SELECT inner_id FROM contest_pro WHERE pro_id = ? AND contest_id = ?", array($row[5], $cid));
+
+            if($row[2] == 4) {
+                $file =  $path.$row[0]."(".$row[1].")/AC/".$inner_id[0];
+            } else {
+                $file =  $path.$row[0]."(".$row[1].")/WA/".$inner_id[0];
+            }
+            if($row[3] == 3) {
+                $file .= "_".$row[6].".java";
+            } else {
+                $file .= "_".$row[6].".cpp";
+            }
+            $fp = fopen($file, "w+");
+            fputs ( $fp,  $row[4]);
+            fclose($fp);
+            echo $row[6]."<br/>\n";
+        }
+    }
+}

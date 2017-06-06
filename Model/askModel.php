@@ -28,7 +28,7 @@ class askModel extends DB {
 		else { 
 			$args = array();
 			while($row = $res->fetch(PDO::FETCH_NUM)) {
-				$args[] = $row[0];
+				$args[] = htmlspecialchars($row[0]);
 			}
 			return $args;
 		}
@@ -63,14 +63,15 @@ class askModel extends DB {
 	
 	
 	public function get_answer($question_id) {
-		$args[] = parent::query_one("SELECT question.*, users.username FROM users LEFT JOIN question ON(users.user_id = question.user_id) WHERE question.question_id = ?", array($question_id));
+		$info = parent::query_one("SELECT question.*, users.username FROM users LEFT JOIN question ON(users.user_id = question.user_id) WHERE question.question_id = ?", array($question_id));
 		$res = parent::query("SELECT answer.*, users.username FROM  users LEFT JOIN answer ON(users.user_id = answer.user_id) WHERE question_id = ?", array($question_id));
+		$args = array();
 		if($res->rowCount() != 0) {
 			while($row = $res->fetch(PDO::FETCH_NUM)) {
 				$args[] = $row;
 			}
 		}
-		return $args;
+		return [$info, $args];
 	}
 }
 ?>
