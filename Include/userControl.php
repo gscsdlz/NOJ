@@ -39,6 +39,7 @@ class userControl extends Smarty {
 		$arg = self::$model->get_nac_problem ( $user_id );
 		parent::assign('wa_pros', $arg);
 		$userinfo = self::$model->get_user_info ( $user_id );
+        parent::assign('title', $userinfo['username']);
 		parent::assign($userinfo);
 		$arg = self::$model->get_contest_info ( $user_id );
 		parent::assign('contests',$arg);

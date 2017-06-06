@@ -65,6 +65,7 @@ class contestControl extends Smarty {
 		$args= self::$model->get_lists ( $cid );
         parent::assign('problemNavbar','true');
 		parent::assign('info', $args[0]);
+        parent::assign('title', $args[0]['contest_name']);
 		if ($status == 0) { // 检查用户权限以及比赛是否开始
 			parent::assign('lists', self::$model->get_problem_list ( $cid ));
 			parent::display('contest_problem_list.html');
@@ -183,6 +184,7 @@ class contestControl extends Smarty {
         parent::assign('contest', $contest);
 		parent::assign('ids', self::$model->get_all_inner_id ( $cid ));
 		$info = self::$model->get_lists($cid);
+        parent::assign('title', $info[0]['contest_name']);
 		parent::assign($info[0]);
 		if (count($info[0]) != 0) {
 		    $args = self::$rankModel->contest_rank ( $cid , $page, $team);
@@ -213,7 +215,7 @@ class contestControl extends Smarty {
         parent::assign('contest', $contest);
 		$args = self::$askModel->get_answer ( $topic );
 		parent::assign('info', $args[0]);
-		parent::assign('lists', $args[1]);
+		parent::assign('lists', $args[2]);
 		unset($args);
         parent::assign('askNavbar','true');
 		parent::display('contest_ask.html');

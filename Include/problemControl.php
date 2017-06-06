@@ -38,6 +38,7 @@ class problemControl extends Smarty {
             global $langArr;
             $body ['langArr'] = $langArr;
             $body ['contest'] = 0;
+            parent::assign('title', $body['pro_title']);
             parent::assign($body);
             parent::display('problem.html');
         } else {
@@ -64,7 +65,8 @@ class problemControl extends Smarty {
     public function search() {
         $key = get ( 'key' );
         $lists = self::$model->get_search_result ( $key );
-        VIEW::loopshow ( 'problem_list', $lists );
+        parent::assign( 'lists', $lists );
+        parent::display('problem_list.html');
     }
     public function get_statistics() {
         if ($_SERVER ['REQUEST_METHOD'] == 'POST') {
